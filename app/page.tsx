@@ -1,5 +1,5 @@
-import AdBoard from '@/components/AdBoard';
+import Site from '@/components/Site';
 
 export default function Page() {
-  return <AdBoard />;
+  return <Site />;
 }

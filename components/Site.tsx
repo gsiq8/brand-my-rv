@@ -1,0 +1,82 @@
+'use client';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { SPOTS, isRv } from '@/lib/spots';
+import type { BoardEntry, BoardResponse } from '@/lib/types';
+import type { ViewName } from './Motorhome3D';
+import Header from './Header';
+import TopStrip from './TopStrip';
+import Hero from './Hero';
+import Auction from './Auction';
+import History from './History';
+import Corner from './Corner';
+import BidDrawer from './BidDrawer';
+import { Faq, Footer, Host, HowItWorks, Specs } from './StaticSections';
+import IntroSection from './IntroSection';
+import Background from './Background';
+
+export default function Site() {
+  const [data, setData] = useState<BoardResponse | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState<{ spotId: string; dataUrl: string } | null>(null);
+  const [view, setView] = useState<{ name: ViewName; n: number } | null>(null);
+  const [visitors, setVisitors] = useState<number | null>(null);
+  const [mode, setMode] = useState<'auction' | 'final'>('auction');
+
+  const load = useCallback(async () => {
+    try { const r = await fetch('/api/board', { cache: 'no-store' }); if (r.ok) setData(await r.json()); } catch { /* keep old data */ }
+  }, []);
+  useEffect(() => { load(); const t = setInterval(load, 20000); return () => clearInterval(t); }, [load]);
+  useEffect(() => {                       // count this visit once per browser session
+    let counted = false;
+    try { counted = !!sessionStorage.getItem('visited'); } catch { /* storage blocked */ }
+    fetch('/api/visit', { method: counted ? 'GET' : 'POST' }).then((r) => r.json()).then((d) => {
+      if (typeof d.visitors === 'number') setVisitors(d.visitors);
+      try { sessionStorage.setItem('visited', '1'); } catch { /* ignore */ }
+    }).catch(() => {});
+  }, []);
+
+  const board = useMemo<Record<string, BoardEntry>>(() => Object.fromEntries((data?.board ?? []).map((e) => [e.spotId, e])), [data]);
+  const logos = useMemo(() => Object.fromEntries(Object.values(board).map((e) => [e.spotId, e.leader?.logoUrl ?? null])), [board]);
+  const amounts = useMemo(() => Object.fromEntries(Object.values(board).map((e) => [e.spotId, e.leader?.amount ?? null])), [board]);
+  const mins = useMemo(() => Object.fromEntries(Object.values(board).map((e) => [e.spotId, e.min])), [board]);
+
+  const goView = (name: ViewName) => setView({ name, n: Date.now() });
+  const choose = (id: string, scroll: boolean) => {
+    setSelected(id); setOpen(true);
+    const s = SPOTS.find((x) => x.id === id);
+    if (s && isRv(s)) { goView(s.view); if (scroll) document.getElementById('hero')?.scrollIntoView({ behavior: 'smooth' }); }
+  };
+  const close = () => { setOpen(false); setDraft(null); };
+
+  return (
+    <div id="top">
+      <Header onGetSpot={() => setOpen(true)} />
+      <TopStrip items={data?.history ?? []} entry={board['corner']} onClaim={() => choose('corner', false)} />
+      <main>
+        <Hero data={data} visitors={visitors} logos={logos} mins={mins} amounts={amounts} mode={mode} selected={selected} draft={draft} view={view}
+          onView={goView} onMode={setMode} onSelect={(id) => choose(id, false)} onGetSpot={() => setOpen(true)} />
+        <div className="dark-grey">
+          <IntroSection />
+        </div>
+
+       
+          
+        
+          <div className="grey" id="grey">
+            <Background />
+              <Auction data={data} onBid={(id) => choose(id, true)} />
+              <History items={data?.history ?? []} board={board} />
+              <HowItWorks />
+              <Specs />
+              <Faq />
+              <Corner entry={board['corner']} items={data?.history ?? []} onBid={() => choose('corner', false)} />
+              <Host />
+          </div> 
+      
+      </main>
+      <Footer />
+      {open && <BidDrawer board={board} selected={selected} onSelect={(id) => choose(id, false)} onDraft={(spotId, dataUrl) => setDraft(dataUrl ? { spotId, dataUrl } : null)} onClose={close} />}
+    </div>
+  );
+}

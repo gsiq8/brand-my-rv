@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { SPOTS, type SpotDef } from '@/lib/spots';
+import { RV_SPOTS as SPOTS, type RvSpot as SpotDef } from '@/lib/spots';
 import { CONFIG } from '@/lib/config';
 import { skyFor } from '@/lib/sky';
 
@@ -14,6 +14,8 @@ export type Props = {
   selected: string | null;
   draft: { spotId: string; dataUrl: string } | null; // unsent logo preview
   view: { name: ViewName; n: number } | null;    // change `n` to re-trigger a camera move
+  mode: 'auction' | 'final';                    // 'final' hides amounts, outlines and empty spots
+  amounts: Record<string, number | null>;       // current top bid per spot
   onSelect: (id: string) => void;
 };
 type Api = { update: (p: Props) => void };
@@ -110,10 +112,10 @@ export default function Motorhome3D(props: Props) {
     } else { applySky(); skyTimer = setInterval(applySky, 300000); }
 
     // ---- ad spots: planes laid on the real surface of the model ----
-    type St = { cv: HTMLCanvasElement; tex: THREE.CanvasTexture; mesh: THREE.Mesh; logo: string | null; min: number };
+    type St = { cv: HTMLCanvasElement; tex: THREE.CanvasTexture; mesh: THREE.Mesh; logo: string | null; min: number; placed: boolean; amount: number | null };
     const st: Record<string, St> = {};
     const images = new Map<string, HTMLImageElement>();
-    let draftImg: HTMLImageElement | null = null, draftKey = '', selected: string | null = null, draft: Props['draft'] = null, lastView = -1;
+    let draftImg: HTMLImageElement | null = null, draftKey = '', selected: string | null = null, draft: Props['draft'] = null, lastView = -1, mode: Props['mode'] = 'auction';
     const meshes: THREE.Mesh[] = [];
     SPOTS.forEach((s) => {
       const cv = document.createElement('canvas'); cv.width = Math.round(s.w * 1800); cv.height = Math.round(s.h * 1800);
@@ -121,7 +123,7 @@ export default function Motorhome3D(props: Props) {
       const mat = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
       adMats.push(mat);
       const mesh = new THREE.Mesh(new THREE.PlaneGeometry(s.w, s.h), mat); mesh.userData.id = s.id; mesh.visible = false;
-      scene.add(mesh); meshes.push(mesh); st[s.id] = { cv, tex, mesh, logo: null, min: s.price };
+      scene.add(mesh); meshes.push(mesh); st[s.id] = { cv, tex, mesh, logo: null, min: s.price, placed: false, amount: null };
     });
     const draw = (s: SpotDef) => {
       const o = st[s.id], g = o.cv.getContext('2d')!, w = o.cv.width, h = o.cv.height, sel = selected === s.id;
@@ -138,9 +140,18 @@ export default function Motorhome3D(props: Props) {
         g.font = `700 ${f}px system-ui,sans-serif`; g.fillText('YOUR AD HERE', w / 2, h / 2 - f * 0.6);
         g.font = `500 ${f * 0.7}px system-ui,sans-serif`; g.fillStyle = '#6b7a90'; g.fillText(`bid from ${o.min} / ${CONFIG.periodLabel}`, w / 2, h / 2 + f * 0.6);
       }
-      g.lineWidth = sel ? h * 0.05 : h * 0.02; g.strokeStyle = sel ? '#e8890c' : '#7b8a9c';
-      g.setLineDash(!sel && !im ? [h * 0.09, h * 0.06] : []);
-      g.strokeRect(g.lineWidth / 2, g.lineWidth / 2, w - g.lineWidth, h - g.lineWidth);
+      if (mode === 'auction') {
+        if (im && o.amount != null) {            // amount tag on sold spots
+          const txt = new Intl.NumberFormat('en-US', { style: 'currency', currency: CONFIG.currency.toUpperCase(), maximumFractionDigits: 0 }).format(o.amount);
+          const f = h * 0.2; g.font = `700 ${f}px system-ui,sans-serif`;
+          const tw = g.measureText(txt).width + f * 0.9, ph = f * 1.5, m = h * 0.06;
+          g.fillStyle = 'rgba(17,20,24,.88)'; g.beginPath(); g.roundRect(w - tw - m, h - ph - m, tw, ph, ph / 2); g.fill();
+          g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(txt, w - tw / 2 - m, h - ph / 2 - m);
+        }
+        g.lineWidth = sel ? h * 0.05 : h * 0.02; g.strokeStyle = sel ? '#e8890c' : '#7b8a9c';
+        g.setLineDash(!sel && !im ? [h * 0.09, h * 0.06] : []);
+        g.strokeRect(g.lineWidth / 2, g.lineWidth / 2, w - g.lineWidth, h - g.lineWidth);
+      }
       o.tex.needsUpdate = true;
     };
     const loadImg = (url: string, then: () => void) => {
@@ -149,6 +160,7 @@ export default function Motorhome3D(props: Props) {
       if (i.complete) then(); else i.addEventListener('load', then, { once: true });
     };
     SPOTS.forEach(draw);
+    const applyVis = () => SPOTS.forEach((s) => { const o = st[s.id]; o.mesh.visible = o.placed && (mode === 'auction' || !!o.logo); });
 
     const placeSpot = (s: SpotDef, car: THREE.Object3D) => {
       const m = { 'x+': [[2, s.b, s.a], [-1, 0, 0], [0, 1, 0]], 'x-': [[-2, s.b, s.a], [1, 0, 0], [0, 1, 0]], 'z-': [[s.a, s.b, -2], [0, 0, 1], [0, 1, 0]], 'y+': [[s.a, 2, s.b], [0, -1, 0], [0, 0, 1]] }[s.side];
@@ -158,7 +170,7 @@ export default function Motorhome3D(props: Props) {
       const x = new THREE.Vector3().crossVectors(up, n).normalize(), y = new THREE.Vector3().crossVectors(n, x);
       const mesh = st[s.id].mesh;
       mesh.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, n));
-      mesh.position.copy(hit.point).addScaledVector(n, 0.004); mesh.visible = true;
+      mesh.position.copy(hit.point).addScaledVector(n, 0.004); st[s.id].placed = true; applyVis();
     };
 
     // ---- the motorhome ----
@@ -195,14 +207,15 @@ export default function Motorhome3D(props: Props) {
     // ---- sync React props -> scene ----
     api.current = {
       update: (p) => {
-        selected = p.selected; draft = p.draft;
+        selected = p.selected; draft = p.draft; mode = p.mode;
         if (p.draft && p.draft.dataUrl !== draftKey) { draftKey = p.draft.dataUrl; draftImg = new Image(); draftImg.onload = () => SPOTS.forEach(draw); draftImg.src = draftKey; }
         if (!p.draft) { draftKey = ''; draftImg = null; }
         SPOTS.forEach((s) => {
-          const o = st[s.id]; o.min = p.mins[s.id] ?? s.price; o.logo = p.logos[s.id] ?? null;
+          const o = st[s.id]; o.min = p.mins[s.id] ?? s.price; o.logo = p.logos[s.id] ?? null; o.amount = p.amounts[s.id] ?? null;
           if (o.logo) loadImg(o.logo, () => draw(s));
           draw(s);
         });
+        applyVis();
         if (p.view && p.view.n !== lastView) { lastView = p.view.n; go(p.view.name); }
       },
     };

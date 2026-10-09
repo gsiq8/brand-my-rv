@@ -3,10 +3,8 @@ import { useEffect, useState } from 'react';
 import { SPOTS } from '@/lib/spots';
 import { CONFIG } from '@/lib/config';
 import { depositFor } from '@/lib/pricing';
+import { money } from '@/lib/format';
 import type { BoardEntry } from '@/lib/types';
-
-export const money = (n: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: CONFIG.currency.toUpperCase(), maximumFractionDigits: 0 }).format(n);
 
 /** Converts any image (PNG/JPG/WebP/SVG) to a PNG of max 800px. Also makes SVG uploads safe. */
 function shrinkToPng(file: File): Promise<string> {
@@ -29,7 +27,7 @@ function shrinkToPng(file: File): Promise<string> {
 }
 
 const FIELDS = [
-  ['name', 'Name or company', 'text', 'shown on the public board'],
+  ['name', 'Name or company', 'text', 'shown publicly'],
   ['phone', 'Phone', 'tel', ''],
   ['email', 'Email', 'email', ''],
   ['address', 'Address', 'text', ''],
@@ -54,16 +52,20 @@ export default function BidWizard({ board, selected, onSelect, onDraft }: Props)
   const [busy, setBusy] = useState(false);
 
   const spot = SPOTS.find((s) => s.id === selected) ?? null;
-  const min = spot ? board[spot.id]?.min ?? spot.price : 0;
+  const entry = spot ? board[spot.id] : undefined;
+  const min = spot ? entry?.min ?? spot.price : 0;
   const amt = Number(amount);
+  const period = spot?.period ?? CONFIG.periodLabel;
+  const canDeposit = !!spot && !spot.noDeposit;
+  const effMode = canDeposit ? mode : 'full';
 
-  // keep the logo preview on whichever spot is selected
+  // keep the logo preview on the selected spot
   useEffect(() => { if (spot && logo) onDraft(spot.id, logo); }, [spot?.id, logo]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function onFile(f: File | undefined) {
     if (!f || !spot) return;
     if (f.size > 8_000_000) return setErr('That file is too large (max 8 MB).');
-    try { const d = await shrinkToPng(f); setLogo(d); setErr(''); } catch { setErr('Could not read that image.'); }
+    try { setLogo(await shrinkToPng(f)); setErr(''); } catch { setErr('Could not read that image.'); }
   }
 
   function next() {
@@ -87,7 +89,7 @@ export default function BidWizard({ board, selected, onSelect, onDraft }: Props)
     try {
       const r = await fetch('/api/bids', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ spotId: spot.id, amount: amt, mode, logo, ...c }),
+        body: JSON.stringify({ spotId: spot.id, amount: amt, mode: effMode, logo, ...c }),
       });
       const j = await r.json();
       if (!r.ok || !j.url) { setErr(j.error ?? 'Something went wrong.'); if (r.status === 400) setStep(1); setBusy(false); return; }
@@ -95,9 +97,9 @@ export default function BidWizard({ board, selected, onSelect, onDraft }: Props)
     } catch { setErr('Network error. Please try again.'); setBusy(false); }
   }
 
-  const dep = spot ? depositFor(amt || 0) : 0;
+  const dep = depositFor(amt || 0);
   return (
-    <div>
+    <div className="wiz">
       <div className="dots">
         {['Spot & logo', 'Your details', 'Payment'].map((t, i) => (
           <span key={t} className={step === i + 1 ? 'on' : step > i + 1 ? 'ok' : ''}>{i + 1} {t}</span>
@@ -105,56 +107,53 @@ export default function BidWizard({ board, selected, onSelect, onDraft }: Props)
       </div>
 
       {step === 1 && (<>
-        <p>Tap a spot on the motorhome or pick one here.</p>
-        {SPOTS.map((s) => {
-          const e = board[s.id];
-          return (
-            <button key={s.id} className={'spot' + (s.id === selected ? ' sel' : '')} onClick={() => onSelect(s.id)}>
-              <span>{s.name}</span>
-              <span className="tag">{e?.leader ? `Now ${money(e.leader.amount)}` : 'Open'} · min {money(e?.min ?? s.price)}</span>
-            </button>
-          );
-        })}
+        <label>Spot</label>
+        <select value={selected ?? ''} onChange={(e) => e.target.value && onSelect(e.target.value)}>
+          <option value="">Choose a spot…</option>
+          {SPOTS.map((s) => <option key={s.id} value={s.id}>{s.name} — min {money(board[s.id]?.min ?? s.price)}</option>)}
+        </select>
         {spot && (<>
           <label>Your logo (PNG / JPG / SVG)</label>
           <input type="file" accept="image/*" onChange={(e) => onFile(e.target.files?.[0])} />
-          {logo && <div className="tag on">Logo attached – preview is on the motorhome</div>}
-          <label>Your bid ({CONFIG.currency.toUpperCase()} / {CONFIG.periodLabel})</label>
+          {logo && <div className="thumb"><img src={logo} alt="Your logo" /><span>Logo attached{spot.kind !== 'web' ? ' – preview is on the motorhome' : ''}</span></div>}
+          <label>Your bid ({CONFIG.currency.toUpperCase()} / {period})</label>
           <input type="number" min={min} step={1} placeholder={`Min ${min}`} value={amount} onChange={(e) => setAmount(e.target.value)} />
-          <div className="tag">Minimum: {money(min)}{board[spot.id]?.leader ? ` (current ${money(board[spot.id]!.leader!.amount)} + ${money(CONFIG.bidStep)})` : ' (starting price)'}</div>
+          <div className="hint">Minimum: {money(min)}{entry?.leader ? ` (current ${money(entry.leader.amount)} + ${money(CONFIG.bidStep)})` : ' (starting price)'}</div>
         </>)}
       </>)}
 
       {step === 2 && (<>
-        <p>Your details are private. Only the name or company is shown on the board.</p>
+        <p className="hint">Your details are private. Only the name or company is shown publicly.</p>
         {FIELDS.map(([k, label, type, note]) => (
           <div key={k}>
-            <label>{label} {note && <span className="tag">({note})</span>}</label>
+            <label>{label} {note && <span className="hint">({note})</span>}</label>
             <input type={type} value={c[k]} onChange={(e) => setC({ ...c, [k]: e.target.value })} />
           </div>
         ))}
       </>)}
 
       {step === 3 && spot && (<>
-        <div className="sum"><b>{spot.name}</b><br />Bid {money(amt)} / {CONFIG.periodLabel} · {c.name}</div>
+        <div className="sum"><b>{spot.name}</b><br />Bid {money(amt)} / {period} · {c.name}</div>
         <label className="opt">
-          <input type="radio" name="m" checked={mode === 'full'} onChange={() => setMode('full')} />
-          <span>Pay in full now<small>Secure checkout by Stripe. You will see the payment methods available to you.</small></span>
+          <input type="radio" name="m" checked={effMode === 'full'} onChange={() => setMode('full')} />
+          <span>Pay in full now<small>Secure checkout by Stripe – you will see the payment methods available to you.</small></span>
         </label>
-        <label className="opt dep">
-          <input type="radio" name="m" checked={mode === 'deposit'} onChange={() => setMode('deposit')} />
-          <span>Reserve with a {money(dep)} deposit
-            <small>Your offer of {money(amt)} is registered. We contact you to collect the balance (invoice, bank transfer…).
-              {amt >= CONFIG.invoiceHintFrom ? ' Recommended for larger amounts.' : ''}</small></span>
-        </label>
+        {canDeposit && (
+          <label className="opt dep">
+            <input type="radio" name="m" checked={effMode === 'deposit'} onChange={() => setMode('deposit')} />
+            <span>Reserve with a {money(dep)} deposit
+              <small>Your offer of {money(amt)} is registered and we contact you to collect the balance (invoice, bank transfer…).
+                {amt >= CONFIG.invoiceHintFrom ? ' Recommended for larger amounts.' : ''}</small></span>
+          </label>
+        )}
       </>)}
 
-      {err && <div id="msg">{err}</div>}
+      {err && <div className="err">{err}</div>}
       <div className="row">
-        {step > 1 && <button onClick={() => { setErr(''); setStep(step - 1); }} disabled={busy}>← Back</button>}
+        {step > 1 && <button className="btn" onClick={() => { setErr(''); setStep(step - 1); }} disabled={busy}>← Back</button>}
         {step < 3
-          ? <button className="pri" onClick={next} disabled={step === 1 && !spot}>Next →</button>
-          : <button className="pri" onClick={pay} disabled={busy}>{busy ? 'Redirecting…' : mode === 'deposit' ? `Pay ${money(dep)} deposit` : `Pay ${money(amt)}`}</button>}
+          ? <button className="btn pri" onClick={next} disabled={!spot}>Next →</button>
+          : <button className="btn pri" onClick={pay} disabled={busy}>{busy ? 'Redirecting…' : effMode === 'deposit' ? `Pay ${money(dep)} deposit` : `Pay ${money(amt)}`}</button>}
       </div>
     </div>
   );

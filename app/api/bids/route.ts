@@ -22,6 +22,9 @@ function parsePng(x: unknown): Buffer | null {
 }
 
 export async function POST(req: Request) {
+  if (CONFIG.auctionEnd && Date.now() > new Date(CONFIG.auctionEnd).getTime())
+  return fail('The auction has ended.');
+
   let b: Record<string, unknown>;
   try { b = await req.json(); } catch { return fail('Invalid request'); }
 
@@ -34,7 +37,7 @@ export async function POST(req: Request) {
   const amount = Number(b.amount);
   if (!Number.isInteger(amount) || amount < min || amount > 1_000_000) return fail(`The minimum bid is ${min}.`);
 
-  const mode = b.mode === 'deposit' ? 'deposit' : 'full';
+  const mode = b.mode === 'deposit' && !spot.noDeposit ? 'deposit' : 'full';
   const f = { name: clean(b.name, 80), phone: clean(b.phone, 40), email: clean(b.email, 120), address: clean(b.address, 250), taxId: clean(b.taxId, 40) };
   if (Object.values(f).some((v) => !v)) return fail('Please fill in all fields.');
   if (!/^\S+@\S+\.\S+$/.test(f.email)) return fail('Invalid email.');
@@ -72,7 +75,7 @@ export async function POST(req: Request) {
           unit_amount: charge * 100,
           product_data: {
             name: `${mode === 'deposit' ? 'Deposit – ' : ''}Ad spot: ${spot.name}`,
-            description: `Bid ${amount} / ${CONFIG.periodLabel}`,
+            description: `Bid ${amount} / ${spot.period ?? CONFIG.periodLabel}`,
           },
         },
       }],
