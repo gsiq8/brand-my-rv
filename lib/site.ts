@@ -53,4 +53,5 @@ export const FAQ: { q: string; a: string }[] = [
   { q: 'What if someone outbids me?', a: 'The highest paid bid on a spot is the one shown. A new bid must beat the current one by the minimum step. [Explain what happens to an outbid advertiser: refund, credit, or the campaign continues.]' },
   { q: 'Can any brand join?', a: 'Almost. [List your content rules, e.g. no adult, gambling or misleading ads.] We can refuse a logo; if that happens you are refunded.' },
   { q: 'Where does the money go?', a: '[Explain: fuel, maintenance, the next trip…]' },
+  { q: 'Are there any restrictions on the ads?', a: 'We can refuse a logo; if that happens you are refunded. The chassis spot is reserved for truck makers (Iveco, Mercedes-Benz, Ford, Toyota…).' }
 ];

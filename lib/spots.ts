@@ -11,7 +11,7 @@ import { CONFIG } from './config';
  */
 export type Side = 'x+' | 'x-' | 'z-' | 'z+' | 'y+';
 export type ViewKey = 'front' | 'back' | 'left' | 'right' | 'top';
-type Base = { id: string; name: string; price: number; period?: string; noDeposit?: boolean };
+type Base = { id: string; name: string; price: number; period?: string; noDeposit?: boolean; truckOnly?: boolean };
 export type RvSpot = Base & { kind?: 'rv'; side: Side; a: number; b: number; w: number; h: number; view: ViewKey };
 export type WebSpot = Base & { kind: 'web' };
 export type SpotDef = RvSpot | WebSpot;
@@ -25,7 +25,7 @@ export const SPOTS: SpotDef[] = [
   { id: 'B1', name: 'Rear panel', side: 'z-', a: -0.05, b: -0.166, w: 0.38, h: 0.16, price: 350, view: 'back' },
   { id: 'T1', name: 'Roof', side: 'y+', a: 0, b: -0.1, w: 0.46, h: 0.4, price: 300, view: 'top' },
   { id: 'T2', name: 'Roof', side: 'y+', a: 0, b: 1.1, w: 0.46, h: 0.4, price: 300, view: 'top' },
-  { id: 'F1', name: 'Chassis brand', side: 'z+', a: 0, b: -0.15, w: 0.14, h: 0.1, price: 150, view: 'front' },
+  { id: 'F1', name: 'Chassis brand – truck makers only', side: 'z+', a: 0, b: -0.15, w: 0.14, h: 0.1, price: 150, view: 'front', truckOnly: true },
   { id: 'F2', name: 'Chassis brand', side: 'z+', a: 0, b: 0.21, w: 0.24, h: 0.05, price: 150, view: 'front' },
 
   { kind: 'web', id: 'corner', name: 'The corner – top of this website', price: 50, period: 'one-time', noDeposit: true },
@@ -49,3 +49,16 @@ export function sizeInfo(s: RvSpot) {
   const k = CONFIG.rvLengthCm / 2, area = s.w * s.h;
   return { label: area > 0.12 ? 'Large' : area > 0.05 ? 'Medium' : 'Small', cm: `≈ ${Math.round(s.w * k)} × ${Math.round(s.h * k)} cm` };
 }
+
+/** Brands allowed on truck-only spots. Lowercase, no punctuation – edit freely. */
+export const TRUCK_BRANDS = [
+  'iveco', 'mercedes', 'mercedes benz', 'ford', 'toyota', 'volvo', 'scania', 'daf', 'renault', 'renault trucks',
+  'freightliner', 'kenworth', 'peterbilt', 'mack trucks', 'international trucks', 'navistar', 'western star',
+  'isuzu', 'hino', 'fuso', 'mitsubishi fuso', 'nissan', 'ram trucks', 'chevrolet', 'gmc', 'dodge',
+  'volkswagen', 'vw', 'man trucks', 'tata', 'mahindra', 'hyundai', 'kia', 'jac motors', 'foton', 'sinotruk', 'shacman', 'dongfeng',
+];
+export const TRUCK_ONLY_MSG = 'This spot is reserved for truck brands (Iveco, Mercedes-Benz, Ford, Toyota, Volvo…).';
+
+const norm = (v: string) => ' ' + v.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim() + ' ';
+export const brandAllowed = (s: SpotDef, name: string) =>
+  !s.truckOnly || TRUCK_BRANDS.some((b) => norm(name).includes(norm(b)));

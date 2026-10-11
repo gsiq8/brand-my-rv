@@ -137,8 +137,7 @@ export default function Motorhome3D(props: Props) {
       } else {
         g.fillStyle = '#e9eef4'; g.fillRect(0, 0, w, h); g.fillStyle = '#3a4a5c'; g.textAlign = 'center'; g.textBaseline = 'middle';
         const f = Math.min(h * 0.2, w * 0.08);
-        g.font = `700 ${f}px system-ui,sans-serif`; g.fillText('YOUR AD HERE', w / 2, h / 2 - f * 0.6);
-        g.font = `500 ${f * 0.7}px system-ui,sans-serif`; g.fillStyle = '#6b7a90'; g.fillText(`bid from ${o.min} / ${CONFIG.periodLabel}`, w / 2, h / 2 + f * 0.6);
+        g.font = `700 ${f}px system-ui,sans-serif`; g.fillText(s.truckOnly ? 'TRUCK BRANDS' : 'YOUR AD HERE', w / 2, h / 2 - f * 0.6);        g.font = `500 ${f * 0.7}px system-ui,sans-serif`; g.fillStyle = '#6b7a90'; g.fillText(`bid from ${o.min} / ${CONFIG.periodLabel}`, w / 2, h / 2 + f * 0.6);
       }
       if (mode === 'auction') {
         if (im && o.amount != null) {            // amount tag on sold spots
@@ -162,22 +161,68 @@ export default function Motorhome3D(props: Props) {
     SPOTS.forEach(draw);
     const applyVis = () => SPOTS.forEach((s) => { const o = st[s.id]; o.mesh.visible = o.placed && (mode === 'auction' || !!o.logo); });
 
-    const placeSpot = (s: SpotDef, car: THREE.Object3D) => {
-      const m = { 'x+': [[2, s.b, s.a], [-1, 0, 0], [0, 1, 0]], 'x-': [[-2, s.b, s.a], [1, 0, 0], [0, 1, 0]], 'z-': [[s.a, s.b, -2], [0, 0, 1], [0, 1, 0]], 'z+': [[s.a, s.b, 2], [0, 0, -1], [0, -1, 0]], 'y+': [[s.a, 2, s.b], [0, -1, 0], [0, 0, 1]] }[s.side];
-      const hit = new THREE.Raycaster(new THREE.Vector3(...(m[0] as [number, number, number])), new THREE.Vector3(...(m[1] as [number, number, number]))).intersectObject(car, true)[0];
-      if (!hit) { console.warn('ad spot not placed:', s.id); return; }
-      const n = new THREE.Vector3(...(m[1] as [number, number, number])).negate(), up = new THREE.Vector3(...(m[2] as [number, number, number]));
-      const x = new THREE.Vector3().crossVectors(up, n).normalize(), y = new THREE.Vector3().crossVectors(n, x);
-      const mesh = st[s.id].mesh;
-      mesh.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, n));
-      mesh.position.copy(hit.point).addScaledVector(n, 0.004); st[s.id].placed = true; applyVis();
+    const DEBUG = location.search.includes('debug');   // open the site with ?debug to log placement info
+const V = (a: number[]) => new THREE.Vector3(a[0], a[1], a[2]);
+
+  const placeSpot = (s: SpotDef, car: THREE.Object3D) => {
+    const rc = new THREE.Raycaster(), nm = new THREE.Matrix3();
+    const cast = (from: THREE.Vector3, dir: THREE.Vector3) => {
+      rc.set(from, dir);
+      const h = rc.intersectObject(car, true)[0];
+      if (!h || !h.face) return null;
+      const n = h.face.normal.clone().applyMatrix3(nm.getNormalMatrix(h.object.matrixWorld)).normalize();
+      if (n.dot(dir) > 0) n.negate();               // always face the camera side
+      return { p: h.point, n, d: h.distance };
     };
+    const m: Record<string, number[][]> = {         // [ray origin, ray direction, "up" hint]
+      'x+': [[2, s.b, s.a], [-1, 0, 0], [0, 1, 0]], 'x-': [[-2, s.b, s.a], [1, 0, 0], [0, 1, 0]],
+      'z-': [[s.a, s.b, -2], [0, 0, 1], [0, 1, 0]], 'z+': [[s.a, s.b, 2], [0, 0, -1], [0, 1, 0]], // was [0,-1,0] = upside down
+      'y+': [[s.a, 2, s.b], [0, -1, 0], [0, 0, 1]],
+    };
+    const [o, d, upH] = m[s.side].map(V);
+    const n0 = d.clone().negate();
+    const x0 = new THREE.Vector3().crossVectors(upH, n0).normalize(), y0 = new THREE.Vector3().crossVectors(n0, x0);
+
+    // 1) probe a 3x3 grid of rays over the footprint; the average normal is the best-fit orientation
+    const nSum = new THREE.Vector3();
+    for (const i of [-1, 0, 1]) for (const j of [-1, 0, 1]) {
+      const h = cast(o.clone().addScaledVector(x0, (i * s.w) / 2).addScaledVector(y0, (j * s.h) / 2), d);
+      if (h) nSum.add(h.n);
+    }
+    const mid = cast(o, d);
+    if (!mid || nSum.lengthSq() === 0) { console.warn('ad spot not placed (ray missed the model):', s.id); return; }
+    const n = nSum.normalize();
+    const x = new THREE.Vector3().crossVectors(upH, n);
+    if (x.lengthSq() < 1e-6) x.copy(x0);
+    x.normalize();
+    const y = new THREE.Vector3().crossVectors(n, x);
+
+    // 2) conform: a subdivided grid whose vertices are projected onto the real surface
+    const sx = Math.min(32, Math.max(2, Math.round(s.w * 48))), sy = Math.min(32, Math.max(2, Math.round(s.h * 48)));
+    const geo = new THREE.PlaneGeometry(s.w, s.h, sx, sy), pos = geo.attributes.position;
+    const lift = 0.006, reach = 0.5, tol = 0.1, dn = n.clone().negate(), p = new THREE.Vector3();
+    let fit = 0;
+    for (let i = 0; i < pos.count; i++) {
+      p.copy(mid.p).addScaledVector(x, pos.getX(i)).addScaledVector(y, pos.getY(i));   // flat position
+      const h = cast(p.clone().addScaledVector(n, reach), dn);
+      if (h && Math.abs(h.d - reach) < tol) { p.copy(h.p).addScaledVector(h.n, lift); fit++; }
+      else p.addScaledVector(n, lift);                                                   // no surface nearby: stay flat
+      pos.setXYZ(i, p.x, p.y, p.z);
+    }
+    geo.computeBoundingSphere(); geo.computeBoundingBox();
+    const o2 = st[s.id];
+    o2.mesh.geometry.dispose(); o2.mesh.geometry = geo;           // vertices are already in world space
+    o2.mesh.position.set(0, 0, 0); o2.mesh.quaternion.identity(); o2.mesh.updateMatrixWorld(true);
+    o2.placed = true; applyVis();
+    if (DEBUG) console.log(`${s.id}: ${fit}/${pos.count} vertices on the surface, normal`, n.toArray().map((v) => +v.toFixed(2)));
+  };
 
     // ---- the motorhome ----
     new GLTFLoader().load('/models/motorhome.glb', (g) => {
       const car = g.scene;
       car.traverse((o) => { const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined; if (m) { m.envMapIntensity = 0.9; m.side = THREE.DoubleSide; } });
       scene.add(car); car.updateMatrixWorld(true);
+      if (DEBUG) { const b = new THREE.Box3().setFromObject(car); console.log('motorhome bbox', b.min.toArray(), b.max.toArray()); }
       SPOTS.forEach((s) => placeSpot(s, car));
     });
 

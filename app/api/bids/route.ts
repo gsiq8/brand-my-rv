@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
-import { SPOTS } from '@/lib/spots';
+import { SPOTS, brandAllowed, TRUCK_ONLY_MSG } from '@/lib/spots';
 import { CONFIG } from '@/lib/config';
 import { depositFor, minBidFor } from '@/lib/pricing';
 import { db } from '@/lib/server/supabase';
 import { SITE, stripe } from '@/lib/server/stripe';
 import { topBids } from '@/lib/server/bids';
+
 
 export const runtime = 'nodejs';
 
@@ -42,6 +43,8 @@ export async function POST(req: Request) {
   if (Object.values(f).some((v) => !v)) return fail('Please fill in all fields.');
   if (!/^\S+@\S+\.\S+$/.test(f.email)) return fail('Invalid email.');
   if ((f.phone.match(/\d/g) ?? []).length < 8) return fail('Invalid phone number.');
+  if ((f.phone.match(/\d/g) ?? []).length < 8) return fail('Invalid phone number.');
+  if (!brandAllowed(spot, f.name)) return fail(TRUCK_ONLY_MSG);
   const png = parsePng(b.logo);
   if (!png) return fail('The logo must be a PNG under 2 MB.');
 

@@ -58,6 +58,11 @@ export default function Auction({ data, onBid }: { data: BoardResponse | null; o
             <td>
               <span className="badge">{i}</span>
               <span className="medium">{s.name}</span>
+              {s.truckOnly && 
+                <span className="chip wait" style={{ marginLeft: 8 }}>
+                  Truck brands only
+                </span>
+              }
             </td>
             <td>
               <span className="sz">{sizeInfo(s).label[0]}</span>

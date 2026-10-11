@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { SPOTS } from '@/lib/spots';
+import { SPOTS, brandAllowed, TRUCK_ONLY_MSG } from '@/lib/spots';
 import { CONFIG } from '@/lib/config';
 import { depositFor } from '@/lib/pricing';
 import { money } from '@/lib/format';
@@ -79,6 +79,7 @@ export default function BidWizard({ board, selected, onSelect, onDraft }: Props)
       if (FIELDS.some(([k]) => !c[k].trim())) return setErr('Please fill in all fields.');
       if (!/^\S+@\S+\.\S+$/.test(c.email)) return setErr('Enter a valid email.');
       if ((c.phone.match(/\d/g) ?? []).length < 8) return setErr('Enter a valid phone number.');
+      if (spot && !brandAllowed(spot, c.name)) return setErr(TRUCK_ONLY_MSG);
       setStep(3);
     }
   }
@@ -109,6 +110,7 @@ export default function BidWizard({ board, selected, onSelect, onDraft }: Props)
       {step === 1 && (<>
         <label>Spot</label>
         <select value={selected ?? ''} onChange={(e) => e.target.value && onSelect(e.target.value)}>
+          {spot?.truckOnly && <div className="hint">Reserved for truck brands (Iveco, Mercedes-Benz, Ford, Toyota…). Enter your brand name in the next step.</div>}
           <option value="">Choose a spot…</option>
           {SPOTS.map((s) => <option key={s.id} value={s.id}>{s.name} — min {money(board[s.id]?.min ?? s.price)}</option>)}
         </select>
