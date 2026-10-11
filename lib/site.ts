@@ -6,8 +6,8 @@ export const COPY = {
   headline: 'Your brand, on my RV.',
   sub: 'Join your logo on an adventure: from Patagonia to San Francisco.',
   tapHint: 'Tap any spot to place a bid.',
-  pitchLead: '[One sentence on why you are doing this – e.g. “I fund my road trips by selling the motorhome’s surfaces for advertising.”]',
-  pitchSub: 'Road trips, campsites, events, photos and videos… get your brand seen online and IRL.',
+  pitchLead: 'I financed my first house over wheels by selliing its surfaces for advertising.',
+  pitchSub: 'Roads, cities, campsites, photos and many nations, get your brand seen online and IRL.',
   introTitle: 'Everyone looks at a motorhome.',
   introTitle2: 'Put your logo right where they look.',
   auctionTitle: 'The auction, live.',
@@ -37,7 +37,7 @@ export const STEPS = [
 ];
 
 export const SPECS: [string, string][] = [
-  ['Type', 'Super C motorhome, white'],
+  ['Chassis', 'Class C motorhome'],
   ['Make / model', '[add]'],
   ['Length', '[add]'],
   ['Sleeps', '[add]'],

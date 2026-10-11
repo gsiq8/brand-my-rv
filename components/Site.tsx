@@ -56,23 +56,25 @@ export default function Site() {
       <main>
         <Hero data={data} visitors={visitors} logos={logos} mins={mins} amounts={amounts} mode={mode} selected={selected} draft={draft} view={view}
           onView={goView} onMode={setMode} onSelect={(id) => choose(id, false)} onGetSpot={() => setOpen(true)} />
-        <div className="dark-grey">
-          <IntroSection />
-        </div>
+        <div className="dark-grey"><IntroSection /></div>
 
-       
-          
+      <div className="grey">
         
-          <div className="grey" id="grey">
-            <Background />
-              <Auction data={data} onBid={(id) => choose(id, true)} />
-              <History items={data?.history ?? []} board={board} />
-              <HowItWorks />
-              <Specs />
-              <Faq />
-              <Corner entry={board['corner']} items={data?.history ?? []} onBid={() => choose('corner', false)} />
-              <Host />
-          </div> 
+        <Auction data={data} onBid={(id) => choose(id, true)} />
+        <History items={data?.history ?? []} board={board} />
+        </div>
+      <div className="white">
+        <HowItWorks /></div>
+        <div className="grey">
+        <Specs />
+      </div>
+
+      <div className="journey">
+        <Background />
+        <Faq />
+        <Corner entry={board['corner']} items={data?.history ?? []} onBid={() => choose('corner', false)} />
+        <Host />
+      </div>
       
       </main>
       <Footer />

@@ -1,40 +1,45 @@
 "use client";
 
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 
 type Pt = [number, number];
 
-// Waypoints on the UNFLIPPED map (viewBox 1000×1500), south → north.
+// Imagem /public/map-americas.jpeg: 1200×2400, JÁ na orientação final
+// (sul no topo, San Francisco embaixo). Sem rotação/flip em código ou CSS.
+const IMG_W = 1200, IMG_H = 2400;
+
+// Waypoints em pixels da imagem, sul → norte.
 const WAYPOINTS: Pt[] = [
-  [656, 1443], // 0  Tierra del Fuego
-  [640, 1392], [656, 1318],
-  [676, 1230], // 3  Patagonia
-  [713, 1143], [693, 1035], [674, 986], [669, 879], [640, 830],
-  [581, 771],  // 9  Lima
-  [537, 708], [542, 664], [561, 610],
-  [596, 518],  // 13 Cartagena (the Darién crossing starts here)
-  [549, 540],  // 14 Panama
-  [524, 515], [495, 490], [465, 476],
-  [436, 458],  // 18 Guatemala
-  [405, 444], [342, 415], [305, 382], [272, 343], [244, 296],
-  [190, 244],  // 24 US border
-  [156, 200],
-  [107, 137],  // 26 San Francisco
+  [460, 398],  // Ushuaia / Tierra del Fuego
+  [491, 425],  // Punta Arenas
+  [515, 463],  // Torres del Paine
+  [515, 492],  // El Chaltén
+  [496, 633],  // Bariloche
+  [487, 765],  // Santiago
+  [494, 825],  // La Serena
+  [485, 933],  // Antofagasta
+  [484, 1020],  // Arica
+  [564, 1131],  // Lima
+  [588, 1198],  // Trujillo
+  [599, 1299],  // Guayaquil
+  [582, 1334],  // Quito
+  [529, 1418],  // Bogotá
+  [546, 1515],  // Cartagena
+  [594, 1491],  // Panama
+  [649, 1507],  // San José
+  [676, 1545],  // Managua
+  [726, 1587],  // Guatemala
+  [800, 1630],  // Oaxaca
+  [829, 1670],  // Mexico City
+  [880, 1692],  // Guadalajara
+  [917, 1735],  // Mazatlán
+  [972, 1836],  // Hermosillo
+  [971, 1874],  // US border
+  [1058, 1921],  // Los Angeles
+  [1109, 1985],  // San Francisco
 ];
-// Which waypoint each section below stops at:
-const STOPS = [0, 3, 9, 13, 18, 24, 26];
 
-// const sections: [string, string][] = [
-//   ["Tierra del Fuego", "The journey begins at the end of the world."],
-//   ["Patagonia", "North through the mountains and open country."],
-//   ["South America", "Following the long road north."],
-//   ["The Darién Gap", "A sea crossing between the road sections."],
-//   ["Central America", "Back on the road, heading north."],
-//   ["Mexico and the American West", "The final stretch."],
-//   ["San Francisco", "The destination."],
-// ];
-
-// Smooth curve through the waypoints (Catmull-Rom → Bézier).
+// Curva suave pelos pontos (Catmull-Rom → Bézier).
 function smooth(p: Pt[]) {
   let d = `M ${p[0][0]} ${p[0][1]}`;
   for (let i = 0; i < p.length - 1; i++) {
@@ -43,98 +48,100 @@ function smooth(p: Pt[]) {
   }
   return d;
 }
-const ROUTE_D = smooth(WAYPOINTS);
 
-// Distance along the path of the point nearest to a waypoint.
-function lengthNear(path: SVGPathElement, [x, y]: Pt) {
-  const total = path.getTotalLength();
-  let best = 0, bestD = Infinity;
-  for (let l = 0; l <= total; l += total / 2000) {
-    const q = path.getPointAtLength(l);
-    const d = (q.x - x) ** 2 + (q.y - y) ** 2;
-    if (d < bestD) { bestD = d; best = l; }
-  }
-  return best;
-}
-
-export default function JourneyPage() {
-  const storyRef = useRef<HTMLElement>(null);
-  const svgRef = useRef<SVGSVGElement>(null);
-  const flipRef = useRef<SVGGElement>(null);
+export default function Background() {
+  const mapRef = useRef<HTMLDivElement>(null);
   const routeRef = useRef<SVGPathElement>(null);
   const doneRef = useRef<SVGPathElement>(null);
-  const rvRef = useRef<SVGGElement>(null);
+  const rvRef = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState({ w: 0, h: 0 });
   const [tracing, setTracing] = useState(false);
 
   useEffect(() => setTracing(location.search.includes("trace")), []);
 
+  // O mapa ocupa o container pai (.journey) inteiro: acompanha o tamanho das seções.
   useEffect(() => {
-    // const story = document.getElementById("journey");
-    const story = storyRef.current, route = routeRef.current, done = doneRef.current, rv = rvRef.current;
-    if (!story || !route || !done || !rv) return;
-    const total = route.getTotalLength();
-    const stops = STOPS.map((i) => lengthNear(route, WAYPOINTS[i]));
+    const el = mapRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setSize({ w: el.clientWidth, h: el.clientHeight }));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Waypoints em PIXELS da tela (imagem esticada para o tamanho do container).
+  const pts = useMemo(
+    () => WAYPOINTS.map(([x, y]) => [(x / IMG_W) * size.w, (y / IMG_H) * size.h] as Pt),
+    [size]
+  );
+  const d = useMemo(() => (size.w && size.h ? smooth(pts) : ""), [pts, size]);
+
+  // RV: fica no centro da tela; sua posição no mapa é o ponto do trajeto
+  // cuja altura coincide com o centro da viewport.
+  useEffect(() => {
+    const map = mapRef.current, route = routeRef.current, done = doneRef.current, rv = rvRef.current;
+    if (!map || !route || !done || !rv || !d) return;
+
+    const total = route.getTotalLength(), N = 3000;
+    const ys = new Float32Array(N + 1);
+    let maxY = -Infinity;
+    for (let i = 0; i <= N; i++) {
+      maxY = Math.max(maxY, route.getPointAtLength((total * i) / N).y); // máximo acumulado → monotônico
+      ys[i] = maxY;
+    }
     done.style.strokeDasharray = `${total}`;
 
     const update = () => {
-      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
-      const p = scrollable > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollable)) : 0;
-      const s = p * (stops.length - 1), i = Math.min(stops.length - 2, Math.floor(s));
-      const len = stops[i] + (stops[i + 1] - stops[i]) * (s - i);   // section i → i+1
-      const pt = route.getPointAtLength(len);
-      rv.setAttribute("transform", `translate(${pt.x} ${pt.y}) rotate(180)`); // counter-flip: emoji stays upright
-      done.style.strokeDashoffset = `${total - len}`;               // orange trace grows behind the RV
+      const rect = map.getBoundingClientRect();
+      const target = Math.min(size.h, Math.max(0, window.innerHeight / 2 - rect.top));
+      let lo = 0, hi = N;
+      while (lo < hi) { const m = (lo + hi) >> 1; if (ys[m] < target) lo = m + 1; else hi = m; }
+      const q = route.getPointAtLength((total * lo) / N);
+      rv.style.transform = `translate(${q.x}px, ${q.y}px) translate(-50%, -50%)`;
+      done.style.strokeDashoffset = `${total * (1 - lo / N)}`;
     };
     update();
     window.addEventListener("scroll", update, { passive: true });
     window.addEventListener("resize", update);
     return () => { window.removeEventListener("scroll", update); window.removeEventListener("resize", update); };
-  }, []);
+  }, [d, size.h]);
 
-  // ?trace → click the map to log coordinates for the WAYPOINTS list
-  const onMapClick = (e: MouseEvent<SVGSVGElement>) => {
-    const svg = svgRef.current, g = flipRef.current, m = g?.getScreenCTM();
-    if (!tracing || !svg || !m) return;
-    const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
-    const p = pt.matrixTransform(m.inverse());
-    console.log(`[${Math.round(p.x)}, ${Math.round(p.y)}],`);
+  // ?trace → clique no mapa para logar coordenadas em pixels da imagem
+  const onMapClick = (e: MouseEvent<HTMLDivElement>) => {
+    if (!tracing || !mapRef.current) return;
+    const r = mapRef.current.getBoundingClientRect();
+    console.log(`[${Math.round(((e.clientX - r.left) / r.width) * IMG_W)}, ${Math.round(((e.clientY - r.top) / r.height) * IMG_H)}],`);
   };
 
-  return (
-    <>
-      <div className={"map" + (tracing ? " tracing" : "")} aria-hidden="true">
-        <svg ref={svgRef} viewBox="0 0 1000 1500" preserveAspectRatio="xMidYMid meet" onClick={onMapClick}>         
-            <g ref={flipRef} transform="rotate(180 500 750)">
-            <image href="/map-americas.jpeg" x="0" y="0" width="1000" height="1500" preserveAspectRatio="none" />
-            <path ref={routeRef} className="route-base" d={ROUTE_D} />
-            <path ref={doneRef} className="route" d={ROUTE_D} />
-            <Pin x={WAYPOINTS[0][0]} y={WAYPOINTS[0][1]} label="Tierra del Fuego" />
-            <Pin x={WAYPOINTS[26][0]} y={WAYPOINTS[26][1]} label="San Francisco" />
-            <g ref={rvRef} className="rv">
-              <text textAnchor="middle" dominantBaseline="central" fontSize="38">🚐</text>
-            </g>
-            {tracing && WAYPOINTS.map(([x, y], i) => <circle key={i} cx={x} cy={y} r="4" fill="red" />)}
-          </g>
-        </svg>
-      </div>
+  const start = pts[0], end = pts[pts.length - 1];
 
-      {/* <main ref={storyRef} className="story">
-        {sections.map(([title, description]) => (
-          <section key={title}>
-            <div className="story-card"><h1>{title}</h1><p>{description}</p></div>
-          </section>
-        ))}
-      </main> */}
-    </>
+  return (
+    <div ref={mapRef} className={"map" + (tracing ? " tracing" : "")} aria-hidden="true" onClick={onMapClick}>
+      <div style={{ position: "absolute", inset: 0, backgroundImage: "url(/map-americas.jpeg)", backgroundSize: "100% 100%" }} />
+
+      {d && (
+        <>
+          <svg width={size.w} height={size.h} style={{ position: "absolute", left: 0, top: 0, width: size.w, height: size.h, overflow: "visible", pointerEvents: "none" }}>
+            <path ref={routeRef} d={d} fill="none" style={{ stroke: "#f07836", strokeOpacity: 0.35, strokeWidth: 2, strokeDasharray: "1 8", strokeLinecap: "round" }} />
+            <path ref={doneRef} d={d} fill="none" style={{ stroke: "#f07836", strokeWidth: 3, strokeLinecap: "round", strokeLinejoin: "round" }} />
+          </svg>
+          <Pin x={start[0]} y={start[1]} label="Tierra del Fuego" />
+          <Pin x={end[0]} y={end[1]} label="San Francisco" />
+          <div ref={rvRef} className="rv" style={{ position: "absolute", left: 0, top: 0, fontSize: 38, lineHeight: 1, willChange: "transform" }}>🚐</div>
+          {tracing && pts.map(([x, y], i) => (
+            <i key={i} style={{ position: "absolute", left: x - 4, top: y - 4, width: 8, height: 8, borderRadius: "50%", background: "red" }} />
+          ))}
+        </>
+      )}
+    </div>
   );
 }
 
 function Pin({ x, y, label }: { x: number; y: number; label: string }) {
   return (
-    // the tip of the pin sits exactly on (x, y); rotate(180) cancels the map flip
-    <g transform={`translate(${x} ${y}) rotate(180) scale(1.6) translate(0 -14)`} aria-label={label} className="pin">
+    <svg className="pin" viewBox="-13 -19 26 34" aria-label={label}
+      style={{ position: "absolute", left: x, top: y, width: 20, height: 26, transform: "translate(-50%, -100%)", overflow: "visible", pointerEvents: "none" }}>
       <path d="M 0 14 C -4 7 -12 0 -12 -7 A 12 12 0 1 1 12 -7 C 12 0 4 7 0 14Z" />
       <circle cy="-7" r="4" />
-    </g>
+    </svg>
   );
 }

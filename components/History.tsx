@@ -14,7 +14,7 @@ export default function History({ items, board }: { items: HistoryItem[]; board:
     days.set(k, [...(days.get(k) ?? []), it]);
   }
   return (
-    <section className="wrap sec" id="history">
+    <section className="wrap card-sec" id="history">
       <h3>Day by day</h3>
       <p className="lead small">Number in <span className="g">green</span> = they hold their spot</p>
       {days.size === 0 ? <p className="muted">No bids yet.</p> : (

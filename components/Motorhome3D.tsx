@@ -120,7 +120,7 @@ export default function Motorhome3D(props: Props) {
     SPOTS.forEach((s) => {
       const cv = document.createElement('canvas'); cv.width = Math.round(s.w * 1800); cv.height = Math.round(s.h * 1800);
       const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
-      const mat = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+      const mat = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
       adMats.push(mat);
       const mesh = new THREE.Mesh(new THREE.PlaneGeometry(s.w, s.h), mat); mesh.userData.id = s.id; mesh.visible = false;
       scene.add(mesh); meshes.push(mesh); st[s.id] = { cv, tex, mesh, logo: null, min: s.price, placed: false, amount: null };
@@ -163,7 +163,7 @@ export default function Motorhome3D(props: Props) {
     const applyVis = () => SPOTS.forEach((s) => { const o = st[s.id]; o.mesh.visible = o.placed && (mode === 'auction' || !!o.logo); });
 
     const placeSpot = (s: SpotDef, car: THREE.Object3D) => {
-      const m = { 'x+': [[2, s.b, s.a], [-1, 0, 0], [0, 1, 0]], 'x-': [[-2, s.b, s.a], [1, 0, 0], [0, 1, 0]], 'z-': [[s.a, s.b, -2], [0, 0, 1], [0, 1, 0]], 'y+': [[s.a, 2, s.b], [0, -1, 0], [0, 0, 1]] }[s.side];
+      const m = { 'x+': [[2, s.b, s.a], [-1, 0, 0], [0, 1, 0]], 'x-': [[-2, s.b, s.a], [1, 0, 0], [0, 1, 0]], 'z-': [[s.a, s.b, -2], [0, 0, 1], [0, 1, 0]], 'z+': [[s.a, s.b, 2], [0, 0, -1], [0, -1, 0]], 'y+': [[s.a, 2, s.b], [0, -1, 0], [0, 0, 1]] }[s.side];
       const hit = new THREE.Raycaster(new THREE.Vector3(...(m[0] as [number, number, number])), new THREE.Vector3(...(m[1] as [number, number, number]))).intersectObject(car, true)[0];
       if (!hit) { console.warn('ad spot not placed:', s.id); return; }
       const n = new THREE.Vector3(...(m[1] as [number, number, number])).negate(), up = new THREE.Vector3(...(m[2] as [number, number, number]));

@@ -2,7 +2,7 @@ import { COPY, FAQ, SPECS, STEPS } from '@/lib/site';
 
 export function HowItWorks() {
   return (
-    <section className="wrap sec" id="how">
+    <section className="wrap card-sec" id="how">
       <h2>How it works</h2>
       <ul className="steps">
         {STEPS.map((s, i) => (
@@ -21,13 +21,23 @@ export function HowItWorks() {
 
 export function Specs() {
   return (
-  <section className="wrap sec" id="specs">
-    <h2>{COPY.specsTitle}</h2><p className="lead">{COPY.specsSub}</p>
+  <section className="wrap card-sec" id="specs">
+    <h2>{COPY.specsTitle}</h2>
+    <p className="lead">{COPY.specsSub}</p>
     <div className="card">
-      <div className="card-head"><b>{COPY.specsName}</b><b>{COPY.specsPrice}</b></div>
-      {SPECS.map(([k, v]) => <div className="card-row" key={k}><span className="k">{k}</span><span>{v}</span></div>)}
+      <div className="card-head">
+        <h3 className="tw">{COPY.specsName}</h3>
+        <h3 className="tw">{COPY.specsPrice}</h3>
+      </div>
+      {SPECS.map(([k, v]) => <div className="card-row" key={k}>
+        <span className="k">{k}</span>
+        <span className="v">{v}</span>
+        </div>)}
     </div>
-    <p className="muted small note">{COPY.specsNote} <a href={COPY.specsLink.href}>{COPY.specsLink.label}</a>.</p>
+    <p className="muted small note">{COPY.specsNote} 
+      <a href={COPY.specsLink.href}>{COPY.specsLink.label}
+        </a>.
+        </p>
   </section>
   );
 }

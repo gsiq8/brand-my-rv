@@ -23,7 +23,7 @@ export default function Auction({ data, onBid }: { data: BoardResponse | null; o
   }).filter(Boolean).join(' · ');
 
   return (
-    <section className="wrap sec" id="spots">
+    <section className="wrap card-sec" id="spots">
       <div className="status">
         <span className={'live-dot' + (live ? ' on' : '')} aria-hidden="true" />
         <span>{live ? 'Auction live' : 'Auction ended'}</span>
@@ -55,10 +55,19 @@ export default function Auction({ data, onBid }: { data: BoardResponse | null; o
       <tbody>
         {list.map(({ s, i, e }) => (
           <tr key={s.id} onClick={() => onBid(s.id)} tabIndex={0} onKeyDown={(ev) => ev.key === 'Enter' && onBid(s.id)}>
-            <td><span className="badge">{i}</span>{s.name}</td>
-            <td><span className="sz">{sizeInfo(s).label[0]}</span><span className="muted">{sizeInfo(s).cm.replace('≈ ', '')}</span></td>
-            <td className="held">{e?.leader ? (e.leader.logoUrl ? <img src={e.leader.logoUrl} alt={e.leader.name} /> : e.leader.name) : <span className="muted">Open</span>}</td>
-            <td className="r"><b>{e?.leader ? money(e.leader.amount) : `from ${money(s.price)}`}</b><div className="muted small">{e?.bids ?? 0} bid{e?.bids === 1 ? '' : 's'}</div></td>
+            <td>
+              <span className="badge">{i}</span>
+              <span className="medium">{s.name}</span>
+            </td>
+            <td>
+              <span className="sz">{sizeInfo(s).label[0]}</span>
+              <span className="muted small">{sizeInfo(s).cm.replace('≈ ', '')}</span>
+            </td>
+            <td className="held">{e?.leader ? (e.leader.logoUrl ? 
+              <img src={e.leader.logoUrl} alt={e.leader.name} /> : e.leader.name) : <span className="muted">Open</span>}
+            </td>
+            <td className="r"><b>{e?.leader ? money(e.leader.amount) : `from ${money(s.price)}`}</b>
+            <div className="muted small">{e?.bids ?? 0} bid{e?.bids === 1 ? '' : 's'}</div></td>
           </tr>
         ))}
       </tbody>

@@ -9,7 +9,7 @@ import { CONFIG } from './config';
  *   w, h = size of the ad.  price = starting price.  view = camera view that faces it.
  * A 'web' spot is a place on the website itself (not on the model), e.g. "the corner".
  */
-export type Side = 'x+' | 'x-' | 'z-' | 'y+';
+export type Side = 'x+' | 'x-' | 'z-' | 'z+' | 'y+';
 export type ViewKey = 'front' | 'back' | 'left' | 'right' | 'top';
 type Base = { id: string; name: string; price: number; period?: string; noDeposit?: boolean };
 export type RvSpot = Base & { kind?: 'rv'; side: Side; a: number; b: number; w: number; h: number; view: ViewKey };
@@ -23,13 +23,27 @@ export const SPOTS: SpotDef[] = [
   { id: 'R1', name: 'Right side – long band', side: 'x-', a: -0.17, b: -0.03, w: 0.68, h: 0.14, price: 350, view: 'right' },
   { id: 'R2', name: 'Right side – rear quarter', side: 'x-', a: -0.829, b: -0.096, w: 0.2, h: 0.3, price: 200, view: 'right' },
   { id: 'B1', name: 'Rear panel', side: 'z-', a: -0.05, b: -0.166, w: 0.38, h: 0.16, price: 350, view: 'back' },
-  { id: 'T1', name: 'Roof', side: 'y+', a: 0, b: 0.12, w: 0.46, h: 0.4, price: 300, view: 'top' },
+  { id: 'T1', name: 'Roof', side: 'y+', a: 0, b: -0.1, w: 0.46, h: 0.4, price: 300, view: 'top' },
+  { id: 'T2', name: 'Roof', side: 'y+', a: 0, b: 1.1, w: 0.46, h: 0.4, price: 300, view: 'top' },
+  { id: 'F1', name: 'Chassis brand', side: 'z+', a: 0, b: -0.15, w: 0.14, h: 0.1, price: 150, view: 'front' },
+  { id: 'F2', name: 'Chassis brand', side: 'z+', a: 0, b: 0.21, w: 0.24, h: 0.05, price: 150, view: 'front' },
+
   { kind: 'web', id: 'corner', name: 'The corner – top of this website', price: 50, period: 'one-time', noDeposit: true },
 ];
 export const RV_SPOTS = SPOTS.filter(isRv);
 
-export const groupOf = (s: RvSpot) => (s.side === 'y+' ? 'Roof' : s.side === 'z-' ? 'Rear' : 'Sides');
-
+export const groupOf = (s: RvSpot): string => {
+  switch (s.side) {
+    case 'y+':
+      return 'Roof';
+    case 'z-':
+      return 'Rear';
+    case 'z+':
+      return 'Front';
+    default:
+      return 'Sides';
+  }
+};
 /** Approximate real size, from the model size and CONFIG.rvLengthCm. */
 export function sizeInfo(s: RvSpot) {
   const k = CONFIG.rvLengthCm / 2, area = s.w * s.h;
