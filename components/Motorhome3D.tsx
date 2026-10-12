@@ -185,13 +185,16 @@ const V = (a: number[]) => new THREE.Vector3(a[0], a[1], a[2]);
 
     // 1) probe a 3x3 grid of rays over the footprint; the average normal is the best-fit orientation
     const nSum = new THREE.Vector3();
+    let top: THREE.Vector3 | null = null;
     for (const i of [-1, 0, 1]) for (const j of [-1, 0, 1]) {
       const h = cast(o.clone().addScaledVector(x0, (i * s.w) / 2).addScaledVector(y0, (j * s.h) / 2), d);
-      if (h) nSum.add(h.n);
+      if (h) { nSum.add(h.n); if (!top || h.p.y > top.y) top = h.p; }
     }
     const mid = cast(o, d);
     if (!mid || nSum.lengthSq() === 0) { console.warn('ad spot not placed (ray missed the model):', s.id); return; }
-    const n = nSum.normalize();
+    const roof = s.side === 'y+';
+    if (roof && top) mid.p = top.clone();            // centro na parte mais alta do spot
+    const n = roof ? n0.clone() : nSum.normalize();  // teto: plano sempre horizontal
     const x = new THREE.Vector3().crossVectors(upH, n);
     if (x.lengthSq() < 1e-6) x.copy(x0);
     x.normalize();
@@ -200,8 +203,7 @@ const V = (a: number[]) => new THREE.Vector3(a[0], a[1], a[2]);
     // 2) conform: a subdivided grid whose vertices are projected onto the real surface
     const sx = Math.min(32, Math.max(2, Math.round(s.w * 48))), sy = Math.min(32, Math.max(2, Math.round(s.h * 48)));
     const geo = new THREE.PlaneGeometry(s.w, s.h, sx, sy), pos = geo.attributes.position;
-    const lift = 0.006, reach = 0.5, tol = 0.1, dn = n.clone().negate(), p = new THREE.Vector3();
-    let fit = 0;
+    const lift = roof ? 0.012 : 0.006, reach = roof ? 2 : 0.5, tol = roof ? 0.4 : 0.1, dn = n.clone().negate(), p = new THREE.Vector3();    let fit = 0;
     for (let i = 0; i < pos.count; i++) {
       p.copy(mid.p).addScaledVector(x, pos.getX(i)).addScaledVector(y, pos.getY(i));   // flat position
       const h = cast(p.clone().addScaledVector(n, reach), dn);

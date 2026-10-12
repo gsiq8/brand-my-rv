@@ -23,8 +23,7 @@ export const SPOTS: SpotDef[] = [
   { id: 'R1', name: 'Right side – long band', side: 'x-', a: -0.17, b: -0.03, w: 0.68, h: 0.14, price: 350, view: 'right' },
   { id: 'R2', name: 'Right side – rear quarter', side: 'x-', a: -0.829, b: -0.096, w: 0.2, h: 0.3, price: 200, view: 'right' },
   { id: 'B1', name: 'Rear panel', side: 'z-', a: -0.05, b: -0.166, w: 0.38, h: 0.16, price: 350, view: 'back' },
-  { id: 'T1', name: 'Roof', side: 'y+', a: 0, b: -0.1, w: 0.46, h: 0.4, price: 300, view: 'top' },
-  { id: 'T2', name: 'Roof', side: 'y+', a: 0, b: 1.1, w: 0.46, h: 0.4, price: 300, view: 'top' },
+  { id: 'T1', name: 'Roof', side: 'y+', a: 0, b: 0.1, w: 0.46, h: 0.4, price: 300, view: 'top' },
   { id: 'F1', name: 'Chassis brand – truck makers only', side: 'z+', a: 0, b: -0.15, w: 0.14, h: 0.1, price: 150, view: 'front', truckOnly: true },
   { id: 'F2', name: 'Chassis brand', side: 'z+', a: 0, b: 0.21, w: 0.24, h: 0.05, price: 150, view: 'front' },
 

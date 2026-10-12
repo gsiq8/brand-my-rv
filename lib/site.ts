@@ -37,8 +37,7 @@ export const STEPS = [
 ];
 
 export const SPECS: [string, string][] = [
-  ['Chassis', 'Class C motorhome'],
-  ['Make / model', '[add]'],
+  ['Chassis', 'Overlander/Class C motorhome'],
   ['Length', '[add]'],
   ['Sleeps', '[add]'],
   ['Home base', '[add]'],
