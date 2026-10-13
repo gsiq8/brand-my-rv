@@ -63,6 +63,11 @@ export default function Auction({ data, onBid }: { data: BoardResponse | null; o
                   Truck brands only
                 </span>
               }
+              {s.builderOnly && 
+                <span className="chip wait" style={{ marginLeft: 8 }}>
+                  Builder brands only
+                </span>
+              }
             </td>
             <td>
               <span className="sz">{sizeInfo(s).label[0]}</span>

@@ -14,10 +14,10 @@ export const COPY = {
   auctionSub: 'Every spot shows its current top bid.',
   specsTitle: 'What the money buys.',
   specsSub: 'Here are the exact details.',
-  specsPrice: '[$ price]',
+  specsPrice: '±U$440,000',
   specsLink: { label: 'Check the price', href: '#' },
-  specsName: '[Motorhome name / what the money pays for]',
-  specsNote: '[Explain where the money goes: fuel, maintenance, the next trip…]',
+  specsName: 'Overland Class C Motorhome',
+  specsNote: 'The chassis comes from a manufacturer partner, so the final model is confirmed once a partner signs on. Anything raised past the goal pays for fuel, maintenance and the next trip. Check the price.',
   cornerLead: 'You can also brand this website. One spot, top of the page. Everyone who has held it stays on this list, with how long they lasted – being outbid moves you down, it does not remove you.',
   cornerNote: 'One-time payment. [State your refund policy.]',
   disclaimer: '[Add your disclaimer, e.g. not affiliated with any brand shown.]',
@@ -37,11 +37,14 @@ export const STEPS = [
 ];
 
 export const SPECS: [string, string][] = [
-  ['Chassis', 'Overlander/Class C motorhome'],
-  ['Length', '[add]'],
-  ['Sleeps', '[add]'],
-  ['Home base', '[add]'],
-  ['Where it travels', '[add]'],
+  ['Chassis', 'For a Class C 4x4 or a truck-based 4x4 expedition motorhome. Make and and model set by a chassis partner.'],
+  ['Traction', '4x4 with locking differentials or low ranfe, and high ground clearence for dirt and snow roads.'],
+  ['Length', '24 ft to 34 ft'],
+  ['Fuel and Range', 'Diesel, with a range of at least 600mi (1,000 km) per tank.'],
+  ['Solar', 'Roof array of at least 1,000 W'],
+  ['Power', '20-24 Kwh lithium-ion battery bank, with a 5-7 kW inverter-charger'],
+  ['Climate', 'Insulated for foour seasons, with a diesel heater and air conditioning that runs on battery or solar'],
+  ['Where it travels', 'Built for heat, cold and snow, humid and dry climates. It can endure Latam\'s climate from south to north.'],
 ];
 
 export const FAQ: { q: string; a: string }[] = [

@@ -9,7 +9,8 @@ h1{font-size:clamp(2rem,5vw,4rem);letter-spacing:-0.06em; font-weight:500}
 h2{font-size:36px;letter-spacing:-.02em;line-height:calc(2.5 / 2.25);font-weight:600}
 h3{font-size:18px; align-content:center}
 p{margin:0 0 12px}
-.wrap{max-width:1080px;margin: 0 176px; padding:0 26px}
+.wrap {width: 100%;margin: 0 auto;padding: 0 20px;box-sizing: border-box;}
+@media (min-width: 1432px) {.wrap{max-width:1080px;margin: 0 176px; padding:0 26px}}
 .sec{padding:64px 20px 64px}
 .medium{font-weight:500;font-size:14px}
 .muted{color:var(--dg)}.small{font-size:12px}
@@ -19,7 +20,8 @@ p{margin:0 0 12px}
 .btn.pri{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:600}
 .btn.dark{background:var(--tx);border-color:var(--tx);color:#fff}
 .site{position:relative}
-.card-sec{margin:0 226px;padding:30px 26px 30px}
+.card-sec{margin:0 auto;padding:30px 26px 30px}
+@media (min-width: 1432px) {.card-sec{margin:0 226px;padding:30px 26px 30px}}
 .tw{font-size:20px}
 
 /* header */

@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { RV_SPOTS as SPOTS, type RvSpot as SpotDef } from '@/lib/spots';
+import { sizeInfo, RV_SPOTS as SPOTS, type RvSpot as SpotDef } from '@/lib/spots';
 import { CONFIG } from '@/lib/config';
 import { skyFor } from '@/lib/sky';
 
@@ -137,7 +137,11 @@ export default function Motorhome3D(props: Props) {
       } else {
         g.fillStyle = '#e9eef4'; g.fillRect(0, 0, w, h); g.fillStyle = '#3a4a5c'; g.textAlign = 'center'; g.textBaseline = 'middle';
         const f = Math.min(h * 0.2, w * 0.08);
-        g.font = `700 ${f}px system-ui,sans-serif`; g.fillText(s.truckOnly ? 'TRUCK BRANDS' : 'YOUR AD HERE', w / 2, h / 2 - f * 0.6);        g.font = `500 ${f * 0.7}px system-ui,sans-serif`; g.fillStyle = '#6b7a90'; g.fillText(`bid from ${o.min} / ${CONFIG.periodLabel}`, w / 2, h / 2 + f * 0.6);
+        g.font = `700 ${f}px system-ui,sans-serif`; 
+        g.fillText(s.truckOnly ? 'TRUCK BRANDS' : sizeInfo, w / 2, h / 2 - f * 0.6);        
+        g.font = `500 ${f * 0.7}px system-ui,sans-serif`; 
+        g.fillStyle = '#6b7a90'; 
+        g.fillText(`from $${o.min} / ${CONFIG.periodLabel}`, w / 2, h / 2 + f * 0.6);
       }
       if (mode === 'auction') {
         if (im && o.amount != null) {            // amount tag on sold spots

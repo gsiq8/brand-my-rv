@@ -1,6 +1,6 @@
 export const CONFIG = {
   currency: 'usd',          // Stripe currency. NOTE: Pix only works with 'brl'.
-  periodLabel: 'month',     // prices are per this period (a spot can override it with `period`)
+  periodLabel: 'year',     // prices are per this period (a spot can override it with `period`)
   bidStep: 10,              // a new bid must beat the current top PAID bid by at least this much
   depositFixed: 10,         // deposit to reserve a spot with an offer (you collect the rest yourself)
   depositPercent: 0,        // e.g. 10 => deposit is max(depositFixed, 10% of the bid). Recommended for big amounts.

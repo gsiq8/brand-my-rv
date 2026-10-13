@@ -79,7 +79,8 @@ export default function BidWizard({ board, selected, onSelect, onDraft }: Props)
       if (FIELDS.some(([k]) => !c[k].trim())) return setErr('Please fill in all fields.');
       if (!/^\S+@\S+\.\S+$/.test(c.email)) return setErr('Enter a valid email.');
       if ((c.phone.match(/\d/g) ?? []).length < 8) return setErr('Enter a valid phone number.');
-      if (spot && !brandAllowed(spot, c.name)) return setErr(TRUCK_ONLY_MSG);
+      const isBrandAllowed = !!spot && (brandAllowed as (s: typeof spot, name: string) => boolean)(spot, c.name);
+      if (spot && !isBrandAllowed) return setErr(TRUCK_ONLY_MSG);
       setStep(3);
     }
   }
