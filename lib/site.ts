@@ -1,12 +1,14 @@
 /**
  * ALL THE TEXT OF THE PAGE lives here – edit freely. Anything in [square brackets] is a placeholder to replace.
  */
+import { TOTAL_START } from "./spots";
+
 export const COPY = {
   name: 'Brand My RV',
   headline: 'Your brand, on my RV.',
   sub: 'Join your logo on an adventure: from Patagonia to San Francisco.',
   tapHint: 'Tap any spot to place a bid.',
-  pitchLead: 'I financed my first house over wheels by selliing its surfaces for advertising.',
+  pitchLead: 'To finance my first house over wheels by selliing its surfaces for advertising.',
   pitchSub: 'Roads, cities, campsites, photos and many nations, get your brand seen online and IRL.',
   introTitle: 'Everyone looks at a motorhome.',
   introTitle2: 'Put your logo right where they look.',

@@ -44,8 +44,7 @@ export async function POST(req: Request) {
   if (!/^\S+@\S+\.\S+$/.test(f.email)) return fail('Invalid email.');
   if ((f.phone.match(/\d/g) ?? []).length < 8) return fail('Invalid phone number.');
   if ((f.phone.match(/\d/g) ?? []).length < 8) return fail('Invalid phone number.');
-  if (!Boolean(brandAllowed(spot, f.name))) return fail(TRUCK_ONLY_MSG);
-  if (!Boolean(brandAllowed(spot, f.name))) return fail(BUILDER_ONLY_MSG);
+  if (!brandAllowed(spot, f.name)) return fail(spot.builderOnly ? BUILDER_ONLY_MSG : TRUCK_ONLY_MSG);
 
   const png = parsePng(b.logo);
   if (!png) return fail('The logo must be a PNG under 2 MB.');

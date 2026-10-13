@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { SPOTS, brandAllowed, TRUCK_ONLY_MSG } from '@/lib/spots';
+import { SPOTS, brandAllowed, TRUCK_ONLY_MSG, BUILDER_ONLY_MSG } from '@/lib/spots';
 import { CONFIG } from '@/lib/config';
 import { depositFor } from '@/lib/pricing';
 import { money } from '@/lib/format';
@@ -80,8 +80,7 @@ export default function BidWizard({ board, selected, onSelect, onDraft }: Props)
       if (!/^\S+@\S+\.\S+$/.test(c.email)) return setErr('Enter a valid email.');
       if ((c.phone.match(/\d/g) ?? []).length < 8) return setErr('Enter a valid phone number.');
       const isBrandAllowed = !!spot && (brandAllowed as (s: typeof spot, name: string) => boolean)(spot, c.name);
-      if (spot && !isBrandAllowed) return setErr(TRUCK_ONLY_MSG);
-      setStep(3);
+      if (spot && !brandAllowed(spot, c.name)) return setErr(spot.builderOnly ? BUILDER_ONLY_MSG : TRUCK_ONLY_MSG);      setStep(3);
     }
   }
 

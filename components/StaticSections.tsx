@@ -1,4 +1,5 @@
 import { COPY, FAQ, SPECS, STEPS } from '@/lib/site';
+import { Plus } from 'lucide-react';
 
 export function HowItWorks() {
   return (
@@ -44,9 +45,22 @@ export function Specs() {
 
 export function Faq() {
   return (
-    <section className="wrap sec" id="faq">
-      <h2>Questions &amp; answers</h2>
-      <div className="faq">{FAQ.map((f) => <details key={f.q}><summary>{f.q}</summary><p>{f.a}</p></details>)}</div>
+    <section className="wrap card-sec" id="faq">
+      <h2>Questions &amp; answers</h2>          
+          <div className="faq">
+            <div className="card">
+              {FAQ.map((f) => 
+                <details key={f.q}>
+                <div className="row-h">
+                  <summary>{f.q}</summary>
+                  <Plus/>
+                </div>
+                <div className="p">
+                  <p>{f.a}</p>
+                </div>
+                </details>)}
+            </div>
+          </div>
     </section>
   );
 }
