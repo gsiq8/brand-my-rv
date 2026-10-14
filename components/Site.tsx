@@ -10,7 +10,9 @@ import Auction from './Auction';
 import History from './History';
 import Corner from './Corner';
 import BidDrawer from './BidDrawer';
-import { Faq, Footer, Host, HowItWorks, Specs } from './StaticSections';
+import { Footer, HowItWorks, Specs } from './StaticSections';
+import Host from './Host';
+import Faq from './Faq'
 import IntroSection from './IntroSection';
 import Background from './Background';
 

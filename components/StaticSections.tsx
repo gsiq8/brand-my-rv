@@ -43,43 +43,88 @@ export function Specs() {
   );
 }
 
-export function Faq() {
-  return (
-    <section className="wrap card-sec" id="faq">
-      <h2>Questions &amp; answers</h2>          
-          <div className="faq">
-            <div className="card">
-              {FAQ.map((f) => 
-                <details key={f.q}>
-                <div className="row-h">
-                  <summary>{f.q}</summary>
-                  <Plus/>
-                </div>
-                <div className="p">
-                  <p>{f.a}</p>
-                </div>
-                </details>)}
-            </div>
-          </div>
-    </section>
-  );
-}
+// export function Faq() {
+//   return (
+//     <section className="wrap faq-sec" id="faq">
+//       <h2>Questions &amp; answers</h2>
+//       <div className="faq">
+//         <div className="card-g">
+//           {FAQ.map((f) => {
+    
+//             return (
+//               <details key={f.q}>
+//                 <summary>
+//                   <span>{f.q}</span>
+//                   <Plus className="faq-icon" size={20} />
+//                 </summary>
+//                 <div className="p">
+//                   {Object.entries(f)
+//                     .filter(([key]) => key !== 'q' && f[key])
+//                     .reduce<{ type: 'bullet' | 'text'; items?:  React.ReactNode[]; content?: React.ReactNode }[]>(
+//                       (acc, [key, value], index) => {
+//                         const isBullet = key.startsWith('u');
+//                         const lastItem = acc[acc.length - 1];
+//                         const isPreviousBullet = lastItem && lastItem.type === 'bullet';
 
-export function Host() {
-  const h = COPY.host;
-  return (
-    <section className="wrap sec">
-      <div className="host">
-        <span className="av big">{h.name.replace('[', '').slice(0, 1).toUpperCase()}</span>
-        <div>
-          <h3>Hey, I’m {h.name} 👋</h3>
-          <p>{h.bio}</p>
-          <p>{h.links.map((l) => <a key={l.label} href={l.href} className="lnk">{l.label}</a>)}</p>
-        </div>
-      </div>
-    </section>
-  );
-}
+//                         if (isBullet) {
+//                           if (isPreviousBullet) {
+//                             lastItem.items?.push(<li key={index}>{value}</li>);
+//                           } else {
+//                             acc.push({
+//                               type: 'bullet',
+//                               items: [<li key={index}>{value}</li>]
+//                             });
+//                           }
+//                         } else {
+//                           acc.push({
+//                             type: 'text',
+//                             content: <p key={index}>{value}</p>
+//                           });
+//                         }
+//                         return acc;
+//                       }, 
+//                       []
+//                     )
+//                     .map((group, idx) => (
+//                       group.type === 'bullet' ? (
+//                         <ul key={idx} >
+//                           {group.items}
+//                         </ul>
+//                       ) : (
+//                         group.content
+//                       )
+//                     ))}
+
+//                 </div>
+//               </details>
+//             );
+//           })}
+//         </div>
+//       </div>
+//     </section>
+//   );
+// }
+
+
+// export function Host() {
+//   const h = COPY.host;
+//   return (
+//     <section className="wrap faq-sec">
+      
+//       <LiquidGlass>
+//         <div className="host">
+//         <span className="av big">
+//           {h.name.replace('[', '').slice(0, 1).toUpperCase()}</span>
+//         <div>
+//           <h3>Hey, I’m {h.name} 👋</h3>
+//           <p className="faq p">{h.bio}</p>
+//           <p>{h.links.map((l) => <a key={l.label} href={l.href} className="lnk">{l.label}</a>)}</p>
+//         </div>
+//         </div>
+//        </LiquidGlass> 
+//     </section>
+//   );
+// }
 
 export function Footer() {
   return (
@@ -90,7 +135,7 @@ export function Footer() {
           <a href="#corner">The corner</a><a href="#specs">The motorhome</a><a href="#faq">FAQ</a>
         </nav>
         <nav><a href="/privacy">Privacy</a><a href="/terms">Terms</a></nav>
-        <p className="muted small">{COPY.disclaimer}</p>
+        {/* <p className="muted small">{COPY.disclaimer}</p> */}
       </div>
     </footer>
   );

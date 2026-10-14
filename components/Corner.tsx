@@ -10,7 +10,7 @@ export default function Corner({ entry, items, onBid }: { entry?: BoardEntry; it
   if (!spot) return null;
   const holders = cornerHolders(items);
   return (
-    <section className="wrap sec" id="corner">
+    <section className="wrap faq-sec" id="corner">
       <h2>The corner</h2>
       <p className="lead">{COPY.cornerLead}</p>
       <ul className="corner-list">
