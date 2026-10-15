@@ -191,12 +191,28 @@ p{padding:0 60px 0 0; font-size: 13px}
 }
 .faq-glass summary { color: var(--tx); }          /* the lib sets text to white; the + icon follows currentColor */
 .faq-glass details:last-child { border-bottom: 0; }
+.faq-glass details { overflow-anchor: none; }
 .faq-glass ul { margin: 10px 0 0; padding-left: 20px; color: var(--mu); }
+.glass-slot { position: relative; }
 
 /* host */
 .glass-slot { position: relative; container-type: inline-size; width: 100%; max-width: 760px; }
-.host-glass { width: 100cqw; max-width: none; border: 0; border-radius: 0; padding: 24px 32px; box-sizing: border-box; }
-
+.faq-glass,
+.host-glass {
+  width: 100cqw; 
+  max-width: none; 
+  border: 0; 
+  border-radius: 0; 
+  padding: 24px 32px; 
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  line-height: 1.55;
+  text-shadow: none;
+  color: var(--tx);
+}
+.host-glass p { color: var(--mu); }
+.host-glass h3 { color: var(--tx); }
 
 /* bid drawer + wizard */
 .drawer{position:fixed;z-index:40;top:0;right:0;bottom:0;width:min(400px,100vw);background:#fff;border-left:1px solid var(--bd);box-shadow:-8px 0 30px rgba(0,0,0,.08);padding:16px 18px 24px;overflow:auto}

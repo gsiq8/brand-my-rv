@@ -1,16 +1,13 @@
 'use client'
 import { useEffect, useRef, useState } from 'react';
-import LiquidGlass from 'liquid-glass-react';
+import LiquidGlass from '@/components/glass';
 import { COPY } from '@/lib/site';
 
 export default function Host() {
   const h = COPY.host;
   const inner = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(160);
-  if (typeof window !== 'undefined') {
-    // Safe to use navigator here
-    console.log(navigator.language);
-  }
+
 
   // a altura do slot acompanha a do conteúdo (o vidro é absolute e não gera altura)
   useEffect(() => {

@@ -1,32 +1,42 @@
 'use client'
-import { useEffect, useRef } from 'react';
-import LiquidGlass from 'liquid-glass-react';
+import { useLayoutEffect, useRef } from 'react';
+import LiquidGlass from '@/components/glass';
 import { Plus } from 'lucide-react';
 import { FAQ } from '@/lib/site';
 
 export default function Faq() {
   const slot = useRef<HTMLDivElement>(null);
   const inner = useRef<HTMLDivElement>(null);
-  if (typeof window !== 'undefined') {
-    // Safe to use navigator here
-    console.log(navigator.language);
-  }
 
-  // The glass is absolute, so it adds no height. Copy the content's height onto the slot.
-  // Written straight to the DOM (no state), so opening an item doesn't re-render every frame.
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = inner.current, box = slot.current;
     if (!el || !box) return;
-    let raf = 0;
-    const ro = new ResizeObserver(() => {
-        box.style.height = `${el.offsetHeight}px`;
-        // the lib only re-measures the glass on window resize, so nudge it
-        cancelAnimationFrame(raf);
-        raf = requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
-    });
+    let raf1 = 0, raf2 = 0;
+
+    const sync = () => {
+      box.style.height = `${el.offsetHeight}px`;   // síncrono: o vidro nunca fica "descentrado"
+      window.dispatchEvent(new Event('resize'));   // a lib remede a borda agora
+    };
+
+    const settle = () => {
+      // reforço depois que o layout/animação assentou
+      cancelAnimationFrame(raf1); cancelAnimationFrame(raf2);
+      raf1 = requestAnimationFrame(() => { raf2 = requestAnimationFrame(sync); });
+    };
+
+    sync();
+    const ro = new ResizeObserver(() => { sync(); settle(); });
     ro.observe(el);
-    return () => { ro.disconnect(); cancelAnimationFrame(raf); };
-    }, []);
+    el.addEventListener('transitionend', settle);
+    el.addEventListener('toggle', settle, true); // 'toggle' não borbulha, por isso capture
+
+    return () => {
+      ro.disconnect();
+      el.removeEventListener('transitionend', settle);
+      el.removeEventListener('toggle', settle, true);
+      cancelAnimationFrame(raf1); cancelAnimationFrame(raf2);
+    };
+  }, []);
 
   return (
     <section className="wrap faq-sec" id="faq">
