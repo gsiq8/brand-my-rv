@@ -54,17 +54,16 @@ export async function POST(req: Request) {
 
   const { data: bidder, error: e1 } = await db().from('bidders')
     .insert({ name: f.name, phone: f.phone, email: f.email, address: f.address, tax_id: f.taxId }).select('id').single();
-  if (e1 || !bidder) return fail('Could not save your details.', 500);
-
+  if (e1 || !bidder) { console.error('bidders insert', e1); return fail('Could not save your details.', 500); }
   const up = await db().storage.from('logo-uploads').upload(upload_path, png, { contentType: 'image/png' });
-  if (up.error) return fail('Could not save your logo.', 500);
-
+  if (up.error) { console.error('logo upload', up.error); return fail('Could not save your logo.', 500); }
+  
   const deposit = mode === 'deposit' ? depositFor(amount) : 0;
   const { error: e2 } = await db().from('bids').insert({
     id, spot_id: spot.id, bidder_id: bidder.id, display_name: f.name, amount, currency: CONFIG.currency,
     payment_mode: mode, deposit, upload_path,
   });
-  if (e2) return fail('Could not save your bid.', 500);
+  if (e2) { console.error('bids insert', e2); return fail('Could not save your bid.', 500); }
 
   try {
     const charge = mode === 'deposit' ? deposit : amount;
@@ -89,7 +88,8 @@ export async function POST(req: Request) {
       cancel_url: `${SITE}/?cancelled=1`,
       expires_at: Math.floor(Date.now() / 1000) + 3600,
     });
-    await db().from('bids').update({ stripe_session_id: session.id }).eq('id', id);
+    const { error: e3 } = await db().from('bids').update({ stripe_session_id: session.id }).eq('id', id);
+    if (e3) console.error('session id update failed', e3);
     return NextResponse.json({ url: session.url });
   } catch (e) {
     console.error(e);

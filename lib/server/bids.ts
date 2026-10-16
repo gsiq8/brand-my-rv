@@ -35,8 +35,11 @@ async function publishLogo(bid: { id: string; spot_id: string; upload_path: stri
 
 /** Idempotent: safe to call twice (Stripe retries webhooks). */
 export async function markPaid(bidId: string) {
-  const { data: bid } = await db().from('bids').select('*').eq('id', bidId).single();
-  if (!bid || bid.status === 'paid' || bid.status === 'cancelled') return;
+  const { data: bid, error } = await db().from('bids').select('*').eq('id', bidId).single();
+  if (error || !bid) throw new Error(`bid not found: ${bidId} ${error?.message}`);
+  if (bid.status === 'paid' || bid.status === 'cancelled') return;
   const logo_path = await publishLogo(bid);
-  await db().from('bids').update({ status: 'paid', logo_path, paid_at: new Date().toISOString() }).eq('id', bidId);
+  const { error: e2 } = await db().from('bids')
+    .update({ status: 'paid', logo_path, paid_at: new Date().toISOString() }).eq('id', bidId);
+  if (e2) throw e2;
 }

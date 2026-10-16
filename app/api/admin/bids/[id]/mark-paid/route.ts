@@ -6,6 +6,12 @@ import { markPaid } from '@/lib/server/bids';
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!isAdmin(req)) return new NextResponse('Unauthorized', { status: 401 });
   const { id } = await params;
-  await markPaid(id);
-  return NextResponse.json({ ok: true });
+
+  try {
+  const result = await markPaid(id);
+  return NextResponse.json({ ok: true, result });
+} catch (e) {
+  console.error('mark-paid failed', e);
+  return NextResponse.json({ ok: false, error: String(e) }, { status: 500 });
+}
 }

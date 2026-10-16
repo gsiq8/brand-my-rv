@@ -8,11 +8,15 @@ export const runtime = 'nodejs';
 
 async function onSessionPaid(session: Stripe.Checkout.Session) {
   const bidId = session.metadata?.bid_id;
-  if (!bidId || (session.payment_status !== 'paid' && session.payment_status !== 'no_payment_required')) return;
-  const { data: bid } = await db().from('bids').select('payment_mode,status').eq('id', bidId).single();
-  if (!bid || bid.status === 'paid' || bid.status === 'cancelled') return;
-  if (bid.payment_mode === 'full') await markPaid(bidId);                      // paid in full: logo goes live
-  else await db().from('bids').update({ status: 'pending_offer' }).eq('id', bidId); // deposit: you call / invoice the balance
+  console.log('onSessionPaid', { bidId, payment_status: session.payment_status, metadata: session.metadata });
+  if (!bidId || (session.payment_status !== 'paid' && session.payment_status !== 'no_payment_required')) {
+    console.log('skipped: missing bid_id or not paid'); return;
+  }
+  const { data: bid, error } = await db().from('bids').select('payment_mode,status').eq('id', bidId).single();
+  console.log('bid lookup', { bid, error });
+  if (!bid || bid.status === 'paid' || bid.status === 'cancelled') { console.log('skipped: bid missing or final'); return; }
+  if (bid.payment_mode === 'full') await markPaid(bidId);
+  else await db().from('bids').update({ status: 'pending_offer' }).eq('id', bidId);
 }
 
 export async function POST(req: Request) {
@@ -20,7 +24,7 @@ export async function POST(req: Request) {
   const body = await req.text(); // raw body is required for signature verification
   let event: Stripe.Event;
   try {
-    event = stripe().webhooks.constructEvent(body, sig ?? '', process.env.STRIPE_WEBHOOK_SECRET!);
+    event = stripe().webhooks.constructEvent(body, sig ?? '', process.env.STRIPE_RV_STRIPE_WEBHOOK_KEY!);
   } catch {
     return new NextResponse('Bad signature', { status: 400 });
   }
