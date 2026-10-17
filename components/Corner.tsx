@@ -4,6 +4,7 @@ import { SPOTS } from '@/lib/spots';
 import { cornerHolders, heldFor } from '@/lib/corner';
 import { money } from '@/lib/format';
 import type { BoardEntry, HistoryItem } from '@/lib/types';
+import BrandLink from './BrandLink';
 
 export default function Corner({ entry, items, onBid }: { entry?: BoardEntry; items: HistoryItem[]; onBid: () => void }) {
   const spot = SPOTS.find((s) => s.id === 'corner');
@@ -17,8 +18,10 @@ export default function Corner({ entry, items, onBid }: { entry?: BoardEntry; it
         {holders.length === 0 && <li className="muted">Nobody yet – be the first.</li>}
         {holders.map((h) => (
           <li key={h.item.id}>
-            {h.item.logoUrl ? <img src={h.item.logoUrl} alt="" /> : <span className="av">{h.item.name.slice(0, 1).toUpperCase()}</span>}
-            <b>{h.item.name}</b><span className="amt">{money(h.item.amount)}</span>
+            {h.item.logoUrl
+              ? <BrandLink href={h.item.website}><img src={h.item.logoUrl} alt="" /></BrandLink>
+              : <span className="av">{h.item.name.slice(0, 1).toUpperCase()}</span>}
+            <BrandLink href={h.item.website}><b>{h.item.name}</b></BrandLink><span className="amt">{money(h.item.amount)}</span>
             {h.current ? <span className="chip sold">at the top now</span> : <span className="muted small">held {heldFor(h.heldMs)}</span>}
           </li>
         ))}

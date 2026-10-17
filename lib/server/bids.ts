@@ -1,6 +1,7 @@
 import { db } from './supabase';
 import { after } from 'next/server';
 import { notifyPaid } from './notify';
+import { refundOutbid } from './refunds';
 
 export type Leader = { name: string; amount: number; logoPath: string | null };
 
@@ -45,5 +46,5 @@ export async function markPaid(bidId: string) {
   const { error: e2 } = await db().from('bids')
     .update({ status: 'paid', logo_path, paid_at: new Date().toISOString() }).eq('id', bidId);
   if (e2) throw e2;
-  after(() => notifyPaid(bid));
+  after(async () => { await notifyPaid(bid); await refundOutbid(bid.spot_id); });
 }

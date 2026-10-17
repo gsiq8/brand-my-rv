@@ -5,6 +5,7 @@ import { CONFIG } from '@/lib/config';
 import { RV_SPOTS, groupOf, sizeInfo } from '@/lib/spots';
 import { money } from '@/lib/format';
 import type { BoardEntry, BoardResponse } from '@/lib/types';
+import LeaderTable from './LeaderTable';
 
 const GROUPS = ['All spots', 'Sides', 'Rear', 'Roof'];
 
@@ -34,16 +35,7 @@ export default function Auction({ data, onBid }: { data: BoardResponse | null; o
 
       {top.length > 0 && (<>
         <div className="row-h"><h3>Top brands on the motorhome</h3><a href="/leaderboard">Leaderboard →</a></div>
-        <ol className="top3">
-          {top.map(({ s, e }, k) => (
-            <li key={s.id} className="top-card">
-              <span className="rank">{k + 1}</span>
-              {e!.leader!.logoUrl && <img src={e!.leader!.logoUrl} alt={e!.leader!.name} />}
-              <div><b>{e!.leader!.name}</b><div className="muted small">{s.name}</div></div>
-              <span className="amt">{money(e!.leader!.amount)}</span>
-            </li>
-          ))}
-        </ol>
+        <LeaderTable entries={data?.board ?? []} limit={3} />
       </>)}
 
       <div className="row-h">

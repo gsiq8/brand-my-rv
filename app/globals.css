@@ -107,6 +107,23 @@ p{font-size: 13px}
 .grey{background:#f5f5f7;padding:66 0px}
 .white{background:#fff;padding:66 0px}
 
+/* leaderboard */
+/* leaderboard: soft color blobs give the glass something to refract */
+.lb-bg{min-height:100vh;background:radial-gradient(55% 45% at 15% 8%,#ffd9a8 0%,transparent 65%),radial-gradient(45% 40% at 90% 28%,#cfe0ff 0%,transparent 65%),#f5f5f7}
+.glass-fill{position:relative;width:100cqw;max-width:none;box-sizing:border-box;padding:24px;text-shadow:none;color:var(--tx);
+  font:16px/1.55 -apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Inter","Segoe UI","Helvetica Neue",Helvetica,Arial,sans-serif}
+.podium{display:flex;justify-content:center;align-items:flex-end;gap:20px;margin-top:36px}
+.podium>.glass-slot{flex:1 1 0;max-width:290px;min-width:0}
+.podium .p1{order:2;border-radius:24px;box-shadow:0 14px 44px rgba(232,137,12,.3)}
+.podium .p2{order:1}.podium .p3{order:3}
+.podium .p1 .glass-fill{padding-block:36px}
+.podium .p2 .glass-fill{padding-block:28px}
+.podium .p3 .glass-fill{padding-block:22px}
+@media(max-width:760px){
+  .podium{flex-direction:column;align-items:stretch}
+  .podium>.glass-slot{max-width:none}
+  .podium .p1{order:1}.podium .p2{order:2}.podium .p3{order:3}
+}
 
 /* auction */
 .row-h{display:flex;justify-content:space-between;align-items:baseline;margin:34px 0 12px}.row-h a{font-size:14px}
@@ -139,12 +156,14 @@ p{font-size: 13px}
 .av{width:28px;height:28px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-size:12px;font-weight:700}
 .av.big{width:64px;height:64px;font-size:24px;flex:none}
 .corner-list{margin:0 0 18px;max-width:560px}
+.brand-link{display:inline-flex;align-items:center;color:inherit;text-decoration:none}
+.brand-link:hover{text-decoration:underline}
 .tbl{max-width:none}.tbl table{width:100%;border-collapse:collapse}
 .tbl th{font-weight:600;color:var(--mu);text-align:left;padding:14px 28px;border-bottom:1px solid var(--bd);font-size:12px}
 .tbl td{padding:16px 28px;border-bottom:1px solid var(--bd);font-size:14px;vertical-align:middle}
 .tbl tr:last-child td{border-bottom:0}.tbl tbody tr{cursor:pointer}.tbl tbody tr:hover{background:#fafafa}
 .tbl .r{text-align:right}.tbl td.held,.tbl th:nth-child(3){text-align:center}
-.tbl .held img{max-height:48px;max-width:150px;object-fit:contain}
+.tbl .held img{display:block;margin:0 auto;max-height:48px;max-width:150px;object-fit:contain}
 .badge{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:8px;background:#e5e5ea;font-size:12px;margin-right:14px}
 .sz{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:6px;background:#e5e5ea;font-weight:700;font-size:11px;color:var(--dg);margin-right:8px}
 @media(max-width:760px){.tbl th:nth-child(2),.tbl td:nth-child(2){display:none}.tbl th,.tbl td{padding:14px 12px;font-size:15px}}
@@ -262,7 +281,7 @@ p{font-size: 13px}
 .counters b{color:var(--tx);font-weight:500}.counters .dot{font-style:normal;color:#c9ced6;margin:0 14px}
 a.prev-i{text-decoration:none;color:inherit}
 a.prev-i:hover b{text-decoration:underline}
-.tbl .held a{display:inline-block}
+.tbl .held a{display:flex;justify-content:center;align-items:center}
 
 /* journey.css */
 .map { background: #cfe0e3; 

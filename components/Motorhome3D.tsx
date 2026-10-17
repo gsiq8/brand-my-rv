@@ -132,17 +132,12 @@ export default function Motorhome3D(props: Props) {
       g.clearRect(0, 0, w, h);
 
       if (im) {
-        g.fillStyle = '#fff'; g.fillRect(0, 0, w, h);
         const iw = im.naturalWidth, ih = im.naturalHeight;
-        const close = Math.abs(iw / ih / (w / h) - 1) < 0.15;
-        if (close) {
-          const k = Math.max(w / iw, h / ih);
-          g.drawImage(im, (w - iw * k) / 2, (h - ih * k) / 2, iw * k, ih * k);
-        } else {
-          const pd = h * 0.05, k = Math.min((w - 2 * pd) / iw, (h - 2 * pd) / ih);
-          g.drawImage(im, (w - iw * k) / 2, (h - ih * k) / 2, iw * k, ih * k);
-        }
-      } else {
+        const near = Math.abs(iw / ih / (w / h) - 1) < 0.05;          // within 5% of the spot's shape: fill edge to edge
+        const k = near ? Math.max(w / iw, h / ih) : Math.min(w / iw, h / ih);
+        g.drawImage(im, (w - iw * k) / 2, (h - ih * k) / 2, iw * k, ih * k);
+      
+     } else {
         g.fillStyle = 'rgba(255,255,255,0.55)'; g.fillRect(0, 0, w, h);      // vago: branco transparente
         const l1 = s.truckOnly ? 'TRUCK BRANDS' : s.builderOnly ? 'BUILDER BRANDS' : sizeInfo(s).label.toUpperCase();
         const l2 = `from ${shortFmt.format(o.min)} / ${CONFIG.periodLabel}`;

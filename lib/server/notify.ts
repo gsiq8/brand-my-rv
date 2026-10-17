@@ -54,3 +54,5 @@ export const notifyPaid = (b: BidInfo) =>
   ntfy(process.env.PAYMENT_HOOK_URL ?? process.env.DEPOSIT_HOOK_URL, 'Te pagarãomin - logo no ar',
     `${who(b)} pagou ${b.amount} no spot ${b.spot_id}. A logo já foi publicadassim.`,
     { tags: 'moneybag' });
+
+export const notifyAdmin = (title: string, body: string) => ntfy(undefined, title, body);

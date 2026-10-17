@@ -11,7 +11,7 @@ import { CONFIG } from './config';
  */
 export type Side = 'x+' | 'x-' | 'z-' | 'z+' | 'y+';
 export type ViewKey = 'front' | 'back' | 'left' | 'right' | 'top';
-type Base = { id: string; name: string; price: number; period?: string; noDeposit?: boolean; truckOnly?: boolean; builderOnly?: boolean; };
+type Base = { id: string; name: string; price: number; period?: string; noDeposit?: boolean; noRefund?: boolean; truckOnly?: boolean; builderOnly?: boolean; };
 export type RvSpot = Base & { kind?: 'rv'; side: Side; a: number; b: number; w: number; h: number; view: ViewKey };
 export type WebSpot = Base & { kind: 'web' };
 export type SpotDef = RvSpot | WebSpot;
@@ -39,7 +39,7 @@ export const SPOTS: SpotDef[] = [
   { id: 'F1', name: 'Chassis brand', side: 'z+', a: 0, b: -0.15, w: 0.14, h: 0.1, price: 52000, view: 'front', truckOnly: true },
   { id: 'F2', name: 'Builders brand', side: 'z+', a: 0, b: 0.21, w: 0.24, h: 0.05, price: 40000, view: 'front', builderOnly: true },
 
-  { kind: 'web', id: 'corner', name: 'The corner – top of this website', price: 50, period: 'one-time', noDeposit: true },
+  { kind: 'web', id: 'corner', name: 'The corner – top of this website', price: 50, period: 'one-time', noDeposit: true, noRefund: true },
 ];
 export const RV_SPOTS = SPOTS.filter(isRv);
 
@@ -61,6 +61,16 @@ export const groupOf = (s: RvSpot): string => {
 export function sizeInfo(s: RvSpot) {
   const k = CONFIG.rvLengthCm / 2, area = s.w * s.h;
   return { label: area > 0.12 ? 'Large' : area > 0.05 ? 'Medium' : 'Small', cm: `≈ ${Math.round(s.w * k)} × ${Math.round(s.h * k)} cm` };
+}
+
+/** Recommended upload: the spot's shape, long side 800 px (uploads are downsized to 800 px anyway). */
+export function recommendedSize(s: SpotDef) {
+  if (!isRv(s)) return { w: 512, h: 512, ratio: '1.00', cm: '' };   // the corner is shown square
+  const r = s.w / s.h;
+  return {
+    w: r >= 1 ? 800 : Math.round(800 * r), h: r >= 1 ? Math.round(800 / r) : 800,
+    ratio: r.toFixed(2), cm: sizeInfo(s).cm.replace('≈ ', ''),
+  };
 }
 
 /** Brands allowed on truck-only spots. Lowercase, no punctuation – edit freely. */

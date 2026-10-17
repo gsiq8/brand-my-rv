@@ -14,6 +14,8 @@ async function onSessionPaid(session: Stripe.Checkout.Session) {
   if (!bidId || (session.payment_status !== 'paid' && session.payment_status !== 'no_payment_required')) {
     console.log('skipped: missing bid_id or not paid'); return;
   }
+  const pi = typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id;
+  if (pi) await db().from('bids').update({ payment_intent_id: pi }).eq('id', bidId);
   const { data: bid, error } = await db().from('bids').select('payment_mode,status').eq('id', bidId).single();
   console.log('bid lookup', { bid, error });
   if (!bid || bid.status === 'paid' || bid.status === 'cancelled') { console.log('skipped: bid missing or final'); return; }

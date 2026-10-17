@@ -5,8 +5,8 @@ import { CONFIG } from '@/lib/config';
 import { depositFor } from '@/lib/pricing';
 import { money } from '@/lib/format';
 import type { BoardEntry } from '@/lib/types';
-import { isRv } from '@/lib/spots';
 import { normalizeUrl } from '@/lib/url';
+import { recommendedSize } from '@/lib/spots';
 
 /** Converts any image (PNG/JPG/WebP/SVG) to a PNG of max 800px. Also makes SVG uploads safe. */
 function shrinkToPng(file: File): Promise<string> {
@@ -70,11 +70,6 @@ export default function BidWizard({ board, selected, onSelect, onDraft }: Props)
     if (f.size > 8_000_000) return setErr('That file is too large (max 8 MB).');
     try { setLogo(await shrinkToPng(f)); setErr(''); } catch { setErr('Could not read that image.'); }
   }
-    {spot && isRv(spot) && (() => {
-    const r = spot.w / spot.h;
-    const W = r >= 1 ? 800 : Math.round(800 * r), H = r >= 1 ? Math.round(800 / r) : 800;
-    return <div className="hint">Best fit: {r.toFixed(2)}:1 ratio, e.g. {W}×{H} px. Other shapes are centered with white margins.</div>;
-  })()}
 
   function next() {
     setErr('');
@@ -88,8 +83,8 @@ export default function BidWizard({ board, selected, onSelect, onDraft }: Props)
       if (!/^\S+@\S+\.\S+$/.test(c.email)) return setErr('Enter a valid email.');
       if ((c.phone.match(/\d/g) ?? []).length < 8) return setErr('Enter a valid phone number.');
       const isBrandAllowed = !!spot && (brandAllowed as (s: typeof spot, name: string) => boolean)(spot, c.name);
-      if (spot && !brandAllowed(spot, c.name)) return setErr(spot.builderOnly ? BUILDER_ONLY_MSG : TRUCK_ONLY_MSG);      setStep(3);
-      if (!normalizeUrl(website)) return setErr('Enter a valid website, e.g. yourbrand.com');
+      if (spot && !brandAllowed(spot, c.name)) return setErr(spot.builderOnly ? BUILDER_ONLY_MSG : TRUCK_ONLY_MSG);
+      if (!normalizeUrl(website)) return setErr('Enter a valid website, e.g. yourbrand.com');setStep(3);
     }
   }
 
@@ -119,16 +114,22 @@ export default function BidWizard({ board, selected, onSelect, onDraft }: Props)
       {step === 1 && (<>
         <label>Spot</label>
         <select value={selected ?? ''} onChange={(e) => e.target.value && onSelect(e.target.value)}>
-          {spot?.truckOnly && <div className="hint">Reserved for truck brands (Iveco, Mercedes-Benz, Ford, Toyota…). Enter your brand name in the next step.</div>}
           <option value="">Choose a spot…</option>
           {SPOTS.map((s) => <option key={s.id} value={s.id}>{s.name} — min {money(board[s.id]?.min ?? s.price)}</option>)}
         </select>
+        {spot?.truckOnly && <div className="hint">Reserved for truck brands (Iveco, Mercedes-Benz, Ford, Toyota…). Enter your brand name in the next step.</div>}
+        {spot?.builderOnly && <div className="hint">Reserved for builder brands (Newmar, Entegra, Santo Inácio…). Enter your brand name in the next step.</div>}
         {spot && (<>
           <label>Your logo (PNG / JPG / SVG)</label>
           <input className="bg-neutral-200 w-20 p-1 rounded-md" type="file" accept="image/*" onChange={(e) => onFile(e.target.files?.[0])} />
+          {(() => {
+            const r = recommendedSize(spot);
+            return <div className="hint">Recommended: {r.w}×{r.h} px ({r.ratio}:1){r.cm ? ` · prints at ≈ ${r.cm}` : ''}.</div>;
+          })()}
           {logo && <div className="thumb"><img src={logo} alt="Your logo" /><span>Logo attached{spot.kind !== 'web' ? ' – preview is on the motorhome' : ''}</span></div>}
           <label>Your bid ({CONFIG.currency.toUpperCase()} / {period})</label>
           <input type="number" min={min} step={1} placeholder={`Min ${min}`} value={amount} onChange={(e) => setAmount(e.target.value)} />
+          
           <div className="hint">Minimum: {money(min)}{entry?.leader ? ` (current ${money(entry.leader.amount)} + ${money(CONFIG.bidStep)})` : ' (starting price)'}</div>
         </>)}
       </>)}
