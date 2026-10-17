@@ -17,12 +17,20 @@ export default function Admin() {
     if (!r.ok) { setMsg('Wrong secret or server error.'); return; }
     setRows((await r.json()).bids); setMsg('');
   }
-  async function act(id: string, what: 'mark-paid' | 'invoice') {
-    if (what === 'mark-paid' && !confirm('Mark as paid and publish the logo?')) return;
-    const r = await fetch(`/api/admin/bids/${id}/${what}`, { method: 'POST', headers: h });
-    setMsg(r.ok ? (what === 'invoice' ? 'Invoice sent.' : 'Marked as paid – logo is live.') : 'Failed: ' + (await r.text()));
-    load();
-  }
+  async function act(id: string, what: 'mark-paid' | 'invoice' | 'cancel') {
+  const messages = {
+    'mark-paid': 'Marked as paid – logo is live.',
+    invoice: 'Invoice sent.',
+    cancel: 'Bid cancelled.',
+  };
+  const who = rows?.find((r) => r.id === id)?.display_name ?? 'this bid';
+  if (what === 'mark-paid' && !confirm(`Mark ${who} as paid and publish the logo?`)) return;
+  if (what === 'cancel' && !confirm(`Cancel the bid from ${who}? This cannot be undone.`)) return;
+
+  const r = await fetch(`/api/admin/bids/${id}/${what}`, { method: 'POST', headers: h });
+  setMsg(r.ok ? messages[what] : 'Failed: ' + (await r.text()));
+  load();
+}
 
   return (
     <main style={{ maxWidth: 820, margin: '40px auto', padding: 16, fontFamily: 'system-ui' }}>
@@ -32,11 +40,19 @@ export default function Admin() {
       {rows?.map((b) => (
         <div key={b.id} style={{ border: '1px solid #ccc', borderRadius: 8, padding: 12, marginTop: 12 }}>
           <b>{b.spot_id}</b> · {b.display_name} · bid {b.amount} {b.currency.toUpperCase()} (deposit {b.deposit}) · <i>{b.status}</i>
-          {b.bidders && <div style={{ fontSize: 13, margin: '6px 0' }}>{b.bidders.name} · {b.bidders.phone} · {b.bidders.email}<br />{b.bidders.address} · ID {b.bidders.tax_id}</div>}
-          {b.status !== 'awaiting_payment' && <>
-            <button onClick={() => act(b.id, 'invoice')} disabled={b.status === 'invoiced' || b.amount <= b.deposit}>Send balance invoice</button>{' '}
-            <button onClick={() => act(b.id, 'mark-paid')}>Mark paid (collected)</button>
-          </>}
+          {b.bidders && (
+            <div style={{ fontSize: 13, margin: '6px 0' }}>
+              {b.bidders.name} · <a href={`tel:${b.bidders.phone}`}>{b.bidders.phone}</a> · <a href={`mailto:${b.bidders.email}`}>{b.bidders.email}</a>
+              <br />{b.bidders.address} · ID {b.bidders.tax_id}
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {b.status !== 'awaiting_payment' && <>
+              <button className="bg-yellow-200 rounded-md px-3 py-1" onClick={() => act(b.id, 'invoice')} disabled={b.status === 'invoiced' || b.amount <= b.deposit}>Send balance invoice</button>
+              <button className="bg-green-100 rounded-md px-3 py-1" onClick={() => act(b.id, 'mark-paid')}>Mark paid (collected)</button>
+            </>}
+            <button className="bg-red-100 rounded-md px-3 py-1" onClick={() => act(b.id, 'cancel')}>Cancel bid</button>
+          </div>
         </div>
       ))}
       {rows?.length === 0 && <p>No open bids.</p>}

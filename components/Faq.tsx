@@ -61,7 +61,7 @@ export default function Faq() {
                     <span>{f.q}</span>
                     <Plus className="faq-icon" size={20} />
                   </summary>
-                  <div className="p">
+                  <div className="p pr-8">
 {Object.entries(f)
                     .filter(([key]) => key !== 'q' && f[key])
                     .reduce<{ type: 'bullet' | 'text'; items?:  React.ReactNode[]; content?: React.ReactNode }[]>(

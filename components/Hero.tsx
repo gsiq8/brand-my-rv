@@ -26,7 +26,7 @@ return (
     <section className="hero wrap sec" id="hero">
       <Counters data={data} visitors={visitors} />
       <h1 className="hero-title">{COPY.headline}</h1>
-      <p className="hero-sub">{COPY.sub}</p>
+      <h3 className="hero-sub">{COPY.sub}</h3>
 
       {goal > 0 && (
       <div className="raised">

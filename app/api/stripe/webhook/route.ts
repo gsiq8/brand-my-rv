@@ -3,6 +3,8 @@ import type Stripe from 'stripe';
 import { stripe } from '@/lib/server/stripe';
 import { db } from '@/lib/server/supabase';
 import { markPaid } from '@/lib/server/bids';
+import { after } from 'next/server'; 
+import { notifyDeposit } from '@/lib/server/notify';
 
 export const runtime = 'nodejs';
 
@@ -16,8 +18,13 @@ async function onSessionPaid(session: Stripe.Checkout.Session) {
   console.log('bid lookup', { bid, error });
   if (!bid || bid.status === 'paid' || bid.status === 'cancelled') { console.log('skipped: bid missing or final'); return; }
   if (bid.payment_mode === 'full') await markPaid(bidId);
-  else await db().from('bids').update({ status: 'pending_offer' }).eq('id', bidId);
-}
+  else {
+    // só dispara quando ESTA chamada fez a transição (Stripe reenvia webhooks; evita ligar duas vezes)
+    const { data: moved } = await db().from('bids')
+      .update({ status: 'pending_offer' }).eq('id', bidId).eq('status', 'awaiting_payment')
+      .select('id, spot_id, amount, deposit, display_name, bidders(name, phone, email)')    
+    if (moved?.length) after(() => notifyDeposit(moved[0]));
+  }}
 
 export async function POST(req: Request) {
   const sig = req.headers.get('stripe-signature');

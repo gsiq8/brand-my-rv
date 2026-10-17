@@ -73,8 +73,14 @@ export default function Auction({ data, onBid }: { data: BoardResponse | null; o
               <span className="sz">{sizeInfo(s).label[0]}</span>
               <span className="muted small">{sizeInfo(s).cm.replace('≈ ', '')}</span>
             </td>
-            <td className="held">{e?.leader ? (e.leader.logoUrl ? 
-              <img src={e.leader.logoUrl} alt={e.leader.name} /> : e.leader.name) : <span className="muted">Open</span>}
+            <td className="held">{e?.leader ? (() => {
+              const L = e.leader;
+              const inner = L.logoUrl ? <img src={L.logoUrl} alt={L.name} /> : L.name;
+              return L.website
+                ? <a href={L.website} target="_blank" rel="noopener noreferrer sponsored"
+                    onClick={(ev) => ev.stopPropagation()} onKeyDown={(ev) => ev.stopPropagation()}>{inner}</a>
+                : inner;
+            })() : <span className="muted">Open</span>}
             </td>
             <td className="r"><b>{e?.leader ? money(e.leader.amount) : `from ${money(s.price)}`}</b>
             <div className="muted small">{e?.bids ?? 0} bid{e?.bids === 1 ? '' : 's'}</div></td>

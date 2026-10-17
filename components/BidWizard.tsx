@@ -5,6 +5,8 @@ import { CONFIG } from '@/lib/config';
 import { depositFor } from '@/lib/pricing';
 import { money } from '@/lib/format';
 import type { BoardEntry } from '@/lib/types';
+import { isRv } from '@/lib/spots';
+import { normalizeUrl } from '@/lib/url';
 
 /** Converts any image (PNG/JPG/WebP/SVG) to a PNG of max 800px. Also makes SVG uploads safe. */
 function shrinkToPng(file: File): Promise<string> {
@@ -50,6 +52,7 @@ export default function BidWizard({ board, selected, onSelect, onDraft }: Props)
   const [mode, setMode] = useState<'full' | 'deposit'>('full');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
+  const [website, setWebsite] = useState('');
 
   const spot = SPOTS.find((s) => s.id === selected) ?? null;
   const entry = spot ? board[spot.id] : undefined;
@@ -67,6 +70,11 @@ export default function BidWizard({ board, selected, onSelect, onDraft }: Props)
     if (f.size > 8_000_000) return setErr('That file is too large (max 8 MB).');
     try { setLogo(await shrinkToPng(f)); setErr(''); } catch { setErr('Could not read that image.'); }
   }
+    {spot && isRv(spot) && (() => {
+    const r = spot.w / spot.h;
+    const W = r >= 1 ? 800 : Math.round(800 * r), H = r >= 1 ? Math.round(800 / r) : 800;
+    return <div className="hint">Best fit: {r.toFixed(2)}:1 ratio, e.g. {W}×{H} px. Other shapes are centered with white margins.</div>;
+  })()}
 
   function next() {
     setErr('');
@@ -81,6 +89,7 @@ export default function BidWizard({ board, selected, onSelect, onDraft }: Props)
       if ((c.phone.match(/\d/g) ?? []).length < 8) return setErr('Enter a valid phone number.');
       const isBrandAllowed = !!spot && (brandAllowed as (s: typeof spot, name: string) => boolean)(spot, c.name);
       if (spot && !brandAllowed(spot, c.name)) return setErr(spot.builderOnly ? BUILDER_ONLY_MSG : TRUCK_ONLY_MSG);      setStep(3);
+      if (!normalizeUrl(website)) return setErr('Enter a valid website, e.g. yourbrand.com');
     }
   }
 
@@ -90,7 +99,7 @@ export default function BidWizard({ board, selected, onSelect, onDraft }: Props)
     try {
       const r = await fetch('/api/bids', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ spotId: spot.id, amount: amt, mode: effMode, logo, ...c }),
+        body: JSON.stringify({ spotId: spot.id, amount: amt, mode: effMode, logo, website, ...c }),
       });
       const j = await r.json();
       if (!r.ok || !j.url) { setErr(j.error ?? 'Something went wrong.'); if (r.status === 400) setStep(1); setBusy(false); return; }
@@ -116,7 +125,7 @@ export default function BidWizard({ board, selected, onSelect, onDraft }: Props)
         </select>
         {spot && (<>
           <label>Your logo (PNG / JPG / SVG)</label>
-          <input type="file" accept="image/*" onChange={(e) => onFile(e.target.files?.[0])} />
+          <input className="bg-neutral-200 w-20 p-1 rounded-md" type="file" accept="image/*" onChange={(e) => onFile(e.target.files?.[0])} />
           {logo && <div className="thumb"><img src={logo} alt="Your logo" /><span>Logo attached{spot.kind !== 'web' ? ' – preview is on the motorhome' : ''}</span></div>}
           <label>Your bid ({CONFIG.currency.toUpperCase()} / {period})</label>
           <input type="number" min={min} step={1} placeholder={`Min ${min}`} value={amount} onChange={(e) => setAmount(e.target.value)} />
@@ -132,6 +141,13 @@ export default function BidWizard({ board, selected, onSelect, onDraft }: Props)
             <input type={type} value={c[k]} onChange={(e) => setC({ ...c, [k]: e.target.value })} />
           </div>
         ))}
+        <div>
+          <label>Website <span className="hint">(your logo will link here)</span></label>
+          
+            <input type="text" inputMode="url" autoCapitalize="off" placeholder="yourbrand.com"
+            value={website} onChange={(e) => setWebsite(e.target.value)} />
+        
+        </div>
       </>)}
 
       {step === 3 && spot && (<>

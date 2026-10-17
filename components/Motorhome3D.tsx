@@ -120,42 +120,47 @@ export default function Motorhome3D(props: Props) {
     SPOTS.forEach((s) => {
       const cv = document.createElement('canvas'); cv.width = Math.round(s.w * 1800); cv.height = Math.round(s.h * 1800);
       const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
-      const mat = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
-      adMats.push(mat);
+      const mat = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, transparent: true, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });      adMats.push(mat);
       const mesh = new THREE.Mesh(new THREE.PlaneGeometry(s.w, s.h), mat); mesh.userData.id = s.id; mesh.visible = false;
       scene.add(mesh); meshes.push(mesh); st[s.id] = { cv, tex, mesh, logo: null, min: s.price, placed: false, amount: null };
     });
+    const shortFmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: CONFIG.currency.toUpperCase(), notation: 'compact', maximumFractionDigits: 1 });
     const draw = (s: SpotDef) => {
       const o = st[s.id], g = o.cv.getContext('2d')!, w = o.cv.width, h = o.cv.height, sel = selected === s.id;
       const ok = (i?: HTMLImageElement | null) => (i && i.complete && i.naturalWidth > 0 ? i : null);
       const im = (draft && draft.spotId === s.id ? ok(draftImg) : null) ?? (o.logo ? ok(images.get(o.logo)) : null);
       g.clearRect(0, 0, w, h);
+
       if (im) {
         g.fillStyle = '#fff'; g.fillRect(0, 0, w, h);
-        const pd = h * 0.14, k = Math.min((w - 2 * pd) / im.naturalWidth, (h - 2 * pd) / im.naturalHeight);
-        g.drawImage(im, (w - im.naturalWidth * k) / 2, (h - im.naturalHeight * k) / 2, im.naturalWidth * k, im.naturalHeight * k);
-      } else {
-        g.fillStyle = '#e9eef471'; 
-        g.fillRect(0, 0, w, h); g.fillStyle = '#3a4a5c'; 
-        g.textAlign = 'center'; g.textBaseline = 'middle';
-        const f = Math.min(h * 0.2, w * 0.08);
-        g.font = `700 ${f}px system-ui,sans-serif`; 
-        g.fillText(s.truckOnly ? 'TRUCK BRANDS' : s.builderOnly ? 'BUILDER BRANDS' : sizeInfo(s).label.toUpperCase(), w / 2, h / 2 - f * 0.6);          g.font = `500 ${f * 0.7}px system-ui,sans-serif`; 
-        g.fillStyle = '#6b7a90'; 
-        const short = new Intl.NumberFormat('en-US', { style: 'currency', currency: CONFIG.currency.toUpperCase(), notation: 'compact', maximumFractionDigits: 1 });
-        g.fillText(`from ${short.format(o.min)} / ${CONFIG.periodLabel}`, w / 2, h / 2 + f * 0.6);
-      }
-      if (mode === 'auction') {
-        if (im && o.amount != null) {            // amount tag on sold spots
-          const txt = new Intl.NumberFormat('en-US', { style: 'currency', currency: CONFIG.currency.toUpperCase(), maximumFractionDigits: 0 }).format(o.amount);
-          const f = h * 0.2; g.font = `700 ${f}px system-ui,sans-serif`;
-          const tw = g.measureText(txt).width + f * 0.9, ph = f * 1.5, m = h * 0.06;
-          g.fillStyle = 'rgba(17,20,24,.88)'; g.beginPath(); g.roundRect(w - tw - m, h - ph - m, tw, ph, ph / 2); g.fill();
-          g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(txt, w - tw / 2 - m, h - ph / 2 - m);
+        const iw = im.naturalWidth, ih = im.naturalHeight;
+        const close = Math.abs(iw / ih / (w / h) - 1) < 0.15;
+        if (close) {
+          const k = Math.max(w / iw, h / ih);
+          g.drawImage(im, (w - iw * k) / 2, (h - ih * k) / 2, iw * k, ih * k);
+        } else {
+          const pd = h * 0.05, k = Math.min((w - 2 * pd) / iw, (h - 2 * pd) / ih);
+          g.drawImage(im, (w - iw * k) / 2, (h - ih * k) / 2, iw * k, ih * k);
         }
-        g.lineWidth = sel ? h * 0.05 : h * 0.02; g.strokeStyle = sel ? '#e8890c' : '#7b8a9c';
-        g.setLineDash(!sel && !im ? [h * 0.09, h * 0.06] : []);
-        g.strokeRect(g.lineWidth / 2, g.lineWidth / 2, w - g.lineWidth, h - g.lineWidth);
+      } else {
+        g.fillStyle = 'rgba(255,255,255,0.55)'; g.fillRect(0, 0, w, h);      // vago: branco transparente
+        const l1 = s.truckOnly ? 'TRUCK BRANDS' : s.builderOnly ? 'BUILDER BRANDS' : sizeInfo(s).label.toUpperCase();
+        const l2 = `from ${shortFmt.format(o.min)} / ${CONFIG.periodLabel}`;
+        const F = 56;                                                          // tamanho base fixo, em px do canvas
+        g.textAlign = 'center'; g.textBaseline = 'middle';
+        g.font = `700 ${F}px system-ui,sans-serif`; const w1 = g.measureText(l1).width;
+        g.font = `500 ${F * 0.7}px system-ui,sans-serif`; const w2 = g.measureText(l2).width;
+        const k = Math.min(1, (w * 0.84) / Math.max(w1, w2), (h * 0.8) / (F * 2.2));   // só encolhe se não couber
+        const f = F * k;
+        g.fillStyle = '#3a4a5c'; g.font = `700 ${f}px system-ui,sans-serif`; g.fillText(l1, w / 2, h / 2 - f * 0.6);
+        g.fillStyle = '#6b7a90'; g.font = `500 ${f * 0.7}px system-ui,sans-serif`; g.fillText(l2, w / 2, h / 2 + f * 0.6);
+      }
+
+      if (mode === 'auction') {
+        const LW = sel ? 12 : 6;                                               // espessura fixa
+        g.lineWidth = LW; g.strokeStyle = sel ? '#e8890c' : '#7b8a9c';
+        g.setLineDash(!sel && !im ? [28, 18] : []);                            // tracejado fixo
+        g.strokeRect(LW / 2, LW / 2, w - LW, h - LW);
       }
       o.tex.needsUpdate = true;
     };

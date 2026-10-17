@@ -6,6 +6,7 @@ import { depositFor, minBidFor } from '@/lib/pricing';
 import { db } from '@/lib/server/supabase';
 import { SITE, stripe } from '@/lib/server/stripe';
 import { topBids } from '@/lib/server/bids';
+import { normalizeUrl } from '@/lib/url';
 
 
 export const runtime = 'nodejs';
@@ -44,6 +45,8 @@ export async function POST(req: Request) {
   if (!/^\S+@\S+\.\S+$/.test(f.email)) return fail('Invalid email.');
   if ((f.phone.match(/\d/g) ?? []).length < 8) return fail('Invalid phone number.');
   if ((f.phone.match(/\d/g) ?? []).length < 8) return fail('Invalid phone number.');
+  const website = normalizeUrl(clean(b.website, 300));
+  if (!website) return fail('Enter a valid website.');
   if (!brandAllowed(spot, f.name)) return fail(spot.builderOnly ? BUILDER_ONLY_MSG : TRUCK_ONLY_MSG);
 
   const png = parsePng(b.logo);
@@ -61,7 +64,7 @@ export async function POST(req: Request) {
   const deposit = mode === 'deposit' ? depositFor(amount) : 0;
   const { error: e2 } = await db().from('bids').insert({
     id, spot_id: spot.id, bidder_id: bidder.id, display_name: f.name, amount, currency: CONFIG.currency,
-    payment_mode: mode, deposit, upload_path,
+    payment_mode: mode, deposit, upload_path, website,
   });
   if (e2) { console.error('bids insert', e2); return fail('Could not save your bid.', 500); }
 

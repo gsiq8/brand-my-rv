@@ -14,7 +14,7 @@ h1,h2,h3{line-height:1.05;margin:0}
 h1{font-size:clamp(2rem,5vw,4rem);letter-spacing:-0.06em; font-weight:500;} 
 h2{font-size:36px;letter-spacing:-.02em;line-height:calc(2.5 / 2.25);font-weight:600}
 h3{font-size:18px; align-content:center}
-p{padding:0 60px 0 0; font-size: 13px}
+p{font-size: 13px}
 .p ul {
   list-style-type: disc !important; /* Força a bolinha (bullet) */
   margin:10px 0 0 20px !important;     /* Dá espaço para a bolinha aparecer */
@@ -219,8 +219,8 @@ p{padding:0 60px 0 0; font-size: 13px}
 .drawer-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 .x{border:0;background:var(--soft);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:13px}
 .wiz label{display:block;font-size:12px;color:var(--mu);margin:12px 0 4px}
-.wiz input[type=text],.wiz input[type=number],.wiz input[type=email],.wiz input[type=tel],.wiz select{width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:10px;font:inherit;background:#fff;color:var(--tx)}
-.wiz input[type=file]{width:100%;font-size:13px}
+.wiz input[type=text],.wiz input[type=number],.wiz input[type=email],.wiz input[type=tel],.wiz select{width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:10px;font:inherit;background:#fff;color:var(--tx); font-size: 11px;}
+.wiz input[type=file]{font-size:13px}
 .hint{font-size:12px;color:var(--mu);margin-top:4px}
 .dots{display:flex;gap:4px;font-size:11px}
 .dots span{flex:1;text-align:center;padding:5px 2px;border-radius:8px;background:var(--soft);color:var(--mu)}.dots .on{background:var(--tx);color:#fff}.dots .ok{color:var(--ok)}
@@ -237,9 +237,18 @@ p{padding:0 60px 0 0; font-size: 13px}
   .drawer{top:auto;width:100%;height:68vh;border-left:0;border-top:1px solid var(--bd);border-radius:18px 18px 0 0}
 }
 
-/* added to match the reference structure */
-.strip{border-bottom:1px solid var(--bd);background:var(--soft);font-size:13px}
-.strip-in{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding-top:8px;padding-bottom:8px}
+/* strip */
+.strip{position:sticky;top:54px;z-index:1;background-color: var(--bd);}   /* 54px = header height 53 + 1px border; adjust if you see a gap or overlap */
+.strip-in{display:flex;align-items:center;gap:16px;flex-wrap:nowrap;padding-top:8px;padding-bottom:8px}
+.mq{flex:1;min-width:0;overflow:hidden;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.mq-track{display:flex;width:max-content;animation:mq 40s linear infinite}
+.mq:hover .mq-track{animation-play-state:paused}
+.mq-group{display:flex;flex:none}
+.mq-i{white-space:nowrap;padding-right:48px}
+@keyframes mq{to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.mq-track{animation:none}}
 .prev,.now{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .prev-i{display:inline-flex;align-items:center;gap:6px}.prev-i img{width:22px;height:22px;border-radius:50%;object-fit:cover}.prev-i .av{width:22px;height:22px;font-size:10px}
 .strip .btn{padding:5px 14px;font-size:13px}
@@ -249,9 +258,11 @@ p{padding:0 60px 0 0; font-size: 13px}
 .tabs-f button.on{background:var(--tx);color:#fff;border-color:var(--tx)}
 .amt.win{color:var(--ok)}
 .hero .seg+.stage{margin-top:0}
-
 .counters{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;padding:0 0 22px;color:var(--mu);font-size:16px}
 .counters b{color:var(--tx);font-weight:500}.counters .dot{font-style:normal;color:#c9ced6;margin:0 14px}
+a.prev-i{text-decoration:none;color:inherit}
+a.prev-i:hover b{text-decoration:underline}
+.tbl .held a{display:inline-block}
 
 /* journey.css */
 .map { background: #cfe0e3; 
@@ -262,60 +273,25 @@ p{padding:0 60px 0 0; font-size: 13px}
 }              /* match the ocean color at the edges of the image */
 .route-base { fill: none; stroke: #f07836; stroke-opacity: .3; stroke-width: 6; stroke-dasharray: 2 14; stroke-linecap: round; }
 .map.tracing { pointer-events: auto; z-index: 5; }
-
-
-
-.route {
-  fill: none;
-  stroke: #f07836;
-  stroke-width: 8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.pin path {
-  fill: #f07836;
-}
-
-.pin circle {
-  fill: white;
-}
-
-.rv {
-  font-family: system-ui, sans-serif;
-}
-
-.story {
-  position: relative;
-  z-index: 1;
-}
-
-.story section {
-  min-height: 100vh;
-  display: grid;
-  align-items: center;
-  padding: 8vw;
-}
-
-.story-card {
-  max-width: 28rem;
-  padding: 1.5rem 2rem;
-  border-radius: 1rem;
-  background: rgb(255 255 255 / 88%);
-}
-
-
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(24px);
-  }
+.route {fill: none;stroke: #f07836;stroke-width: 8;stroke-linecap: round;stroke-linejoin: round;}
+.pin path {fill: #f07836;}
+.pin circle {fill: white;}
+.rv {font-family: system-ui, sans-serif;}
+.story {position: relative;z-index: 1;}
+.story section {min-height: 100vh;display: grid;align-items: center;padding: 8vw;}
+.story-card {max-width: 28rem;padding: 1.5rem 2rem;border-radius: 1rem;background: rgb(255 255 255 / 88%);}
+@keyframes fade-in-up {from {opacity: 0;transform: translateY(24px);}
 
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
+
+/* the corner */
+.corner-list li{display:flex;align-items:center;gap:12px;padding:8px 0}
+.corner-list img{width:56px;height:56px;object-fit:contain;border-radius:10px;background:#fff;flex:none}
+.corner-list li:first-child img{width:96px;height:96px}  
 
 /* Hero: staggered entrance on page load */
 .hero > * {

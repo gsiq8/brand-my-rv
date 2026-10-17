@@ -1,4 +1,6 @@
 import { db } from './supabase';
+import { after } from 'next/server';
+import { notifyPaid } from './notify';
 
 export type Leader = { name: string; amount: number; logoPath: string | null };
 
@@ -35,11 +37,13 @@ async function publishLogo(bid: { id: string; spot_id: string; upload_path: stri
 
 /** Idempotent: safe to call twice (Stripe retries webhooks). */
 export async function markPaid(bidId: string) {
-  const { data: bid, error } = await db().from('bids').select('*').eq('id', bidId).single();
+  const { data: bid, error } = await db().from('bids')
+    .select('*, bidders(name, phone, email)').eq('id', bidId).single();
   if (error || !bid) throw new Error(`bid not found: ${bidId} ${error?.message}`);
   if (bid.status === 'paid' || bid.status === 'cancelled') return;
   const logo_path = await publishLogo(bid);
   const { error: e2 } = await db().from('bids')
     .update({ status: 'paid', logo_path, paid_at: new Date().toISOString() }).eq('id', bidId);
   if (e2) throw e2;
+  after(() => notifyPaid(bid));
 }
