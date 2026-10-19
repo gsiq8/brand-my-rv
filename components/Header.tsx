@@ -3,7 +3,7 @@ import { COPY } from '@/lib/site';
 
 export default function Header({ onGetSpot }: { onGetSpot: () => void }) {
   return (
-    <header className="hdr sticky top-0 z-1 bg-white border-b-1 border-b-neutral-200">
+    <header className="hdr sticky top-0 z-20 bg-white border-b-1 border-b-neutral-200">
       <div className="hdr-in ">
         <a className="brand" href="#top">🚐 {COPY.name}</a>
         <nav className="nav">

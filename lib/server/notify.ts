@@ -56,3 +56,6 @@ export const notifyPaid = (b: BidInfo) =>
     { tags: 'moneybag' });
 
 export const notifyAdmin = (title: string, body: string) => ntfy(undefined, title, body);
+
+export const notifyLogoCheck = (b: BidInfo, paid: number, category: 'secure deposit' | 'full payment') =>
+  ntfy(undefined, 'Logo approval needed', `${who(b)} paid $${paid}, ${category}, and needs logo approval. Spot ${b.spot_id}. ${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/admin`);

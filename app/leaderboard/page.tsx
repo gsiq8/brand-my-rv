@@ -1,14 +1,15 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
-import { SPOTS, isRv } from '@/lib/spots';
+import { SPOTS } from '@/lib/spots';
 import { COPY } from '@/lib/site';
 import { money } from '@/lib/format';
-import type { ViewName } from '@/components/Motorhome3D';
+import { cornerHolders } from '@/lib/corner';
 import BrandLink from '@/components/BrandLink';
 import GlassCard from '@/components/GlassCard';
 import Medal from '@/components/Medal';
-import type { BoardEntry, BoardResponse, HistoryItem } from '@/lib/types';
 import TopStrip from '@/components/TopStrip';
+import BidDrawer from '@/components/BidDrawer';
+import type { BoardEntry, BoardResponse, HistoryItem } from '@/lib/types';
 
 type Tab = 'biggest' | 'most' | 'outbid' | 'newest';
 type Row = { key: string; name: string; logoUrl: string | null; website: string | null; big: string; sub: string; live: boolean };
@@ -20,24 +21,15 @@ const TABS: [Tab, string, string][] = [
 ];
 
 export default function Leaderboard() {
+
   const [d, setD] = useState<BoardResponse | null>(null);
   const [tab, setTab] = useState<Tab>('biggest');
-  useEffect(() => { fetch('/api/board', { cache: 'no-store' }).then((r) => r.json()).then(setD).catch(() => {}); }, []);
-
-  const [data, setData] = useState<BoardResponse | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
-  const [view, setView] = useState<{ name: ViewName; n: number } | null>(null);
-  
+  useEffect(() => { fetch('/api/board', { cache: 'no-store' }).then((r) => r.json()).then(setD).catch(() => {}); }, []);
 
-  const board = useMemo<Record<string, BoardEntry>>(() => Object.fromEntries((data?.board ?? []).map((e) => [e.spotId, e])), [data]);
-  
-  const goView = (name: ViewName) => setView({ name, n: Date.now() });
-  const choose = (id: string, scroll: boolean) => {
-      setSelected(id); setOpen(true);
-      const s = SPOTS.find((x) => x.id === id);
-      if (s && isRv(s)) { goView(s.view); if (scroll) document.getElementById('hero')?.scrollIntoView({ behavior: 'smooth' }); }
-    };
+  const board = useMemo<Record<string, BoardEntry>>(() => Object.fromEntries((d?.board ?? []).map((e) => [e.spotId, e])), [d]);
+  const hasCorner = cornerHolders(d?.history ?? []).some((h) => h.current);
 
 
   const { rows, bids, brands } = useMemo(() => {
@@ -82,8 +74,8 @@ export default function Leaderboard() {
 
   return (
     <div className="lb-bg">
+      {hasCorner && <div className="strip-spacer" aria-hidden="true" />}
       <main className="wrap card-sec">
-        <TopStrip items={data?.history ?? []} entry={board['corner']} onClaim={() => choose('corner', false)}/>
         <a href="/">← {COPY.name}</a>
         <div className="muted small" style={{ marginTop: 28 }}>Every paid bid, ever</div>
         <h1 style={{ marginTop: 8 }}>Leaderboard</h1>
@@ -142,6 +134,8 @@ export default function Leaderboard() {
           </div>
         </>)}
       </main>
+      <TopStrip top={0} items={d?.history ?? []} entry={board['corner']} onClaim={() => { setSelected('corner'); setOpen(true); }} />
+      {open && <BidDrawer board={board} selected={selected} onSelect={setSelected} onDraft={() => {}} onClose={() => setOpen(false)} />}
     </div>
   );
 }

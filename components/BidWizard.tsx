@@ -104,6 +104,7 @@ export default function BidWizard({ board, selected, onSelect, onDraft }: Props)
 
   const dep = depositFor(amt || 0);
   return (
+    
     <div className="wiz">
       <div className="dots">
         {['Spot & logo', 'Your details', 'Payment'].map((t, i) => (
@@ -175,5 +176,6 @@ export default function BidWizard({ board, selected, onSelect, onDraft }: Props)
           : <button className="btn pri" onClick={pay} disabled={busy}>{busy ? 'Redirecting…' : effMode === 'deposit' ? `Pay ${money(dep)} deposit` : `Pay ${money(amt)}`}</button>}
       </div>
     </div>
+  
   );
 }

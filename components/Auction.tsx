@@ -24,6 +24,7 @@ export default function Auction({ data, onBid }: { data: BoardResponse | null; o
   }).filter(Boolean).join(' · ');
 
   return (
+    <div className="all">
     <section className="wrap card-sec" id="spots">
       <div className="status">
         <span className={'live-dot' + (live ? ' on' : '')} aria-hidden="true" />
@@ -81,5 +82,6 @@ export default function Auction({ data, onBid }: { data: BoardResponse | null; o
       </tbody>
     </table></div>
     </section>
+    </div>
   );
 }

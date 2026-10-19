@@ -26,7 +26,6 @@ p{font-size: 13px}
 
 .p li {
   display: list-item !important;    /* Garante que o item se comporte como lista */
-  color: var(--mu);
   margin-top: 10px;
 }
 .wrap{box-sizing:border-box}
@@ -72,6 +71,7 @@ p{font-size: 13px}
 .hdr-r{display:flex;align-items:center;gap:10px}
 .corner-pill{display:flex;align-items:center;gap:6px;font-size:12px;border:1px solid var(--bd);border-radius:999px;padding:3px 8px 3px 4px;text-decoration:none;background:#fff}
 .corner-pill img{width:20px;height:18px;border-radius:50%;object-fit:cover}
+.hdr{box-shadow:0 6px 14px -8px rgba(0,0,0,.18)}
 
 /* hero */
 .hero{padding-top:26px;text-align:center}
@@ -257,8 +257,15 @@ p{font-size: 13px}
 }
 
 /* strip */
-.strip{position:sticky;top:54px;z-index:1;background-color: var(--bd);}   /* 54px = header height 53 + 1px border; adjust if you see a gap or overlap */
-.strip-in{display:flex;align-items:center;gap:16px;flex-wrap:nowrap;padding-top:8px;padding-bottom:8px}
+.strip-spacer{height:50px}
+.glass-strip { position: relative; container-type: inline-size; width: 100%; max-width: 1460px; justify-self: center; }
+
+.strip-in{box-sizing:border-box;width:100vw;height:50px;
+  padding:0 max(20px,calc((100vw - 1080px)/2 + 20px));   /* lines up with the header content */
+  display:flex;align-items:center;gap:16px;flex-wrap:nowrap;
+  color:var(--tx);font:500 14px/1 system-ui,sans-serif}   /* overrides the lib's white 20px text */
+.strip-in,.strip-in *{text-shadow:none}
+.strip-lg .glass{box-shadow:none!important}   
 .mq{flex:1;min-width:0;overflow:hidden;
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);
   mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
@@ -266,22 +273,11 @@ p{font-size: 13px}
 .mq:hover .mq-track{animation-play-state:paused}
 .mq-group{display:flex;flex:none}
 .mq-i{white-space:nowrap;padding-right:48px}
+.mq-i b{font-size:14px;font-weight:600}               /* the name was much bigger than the logo and the "paid" text */
 @keyframes mq{to{transform:translateX(-50%)}}
 @media (prefers-reduced-motion:reduce){.mq-track{animation:none}}
-.prev,.now{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .prev-i{display:inline-flex;align-items:center;gap:6px}.prev-i img{width:22px;height:22px;border-radius:50%;object-fit:cover}.prev-i .av{width:22px;height:22px;font-size:10px}
 .strip .btn{padding:5px 14px;font-size:13px}
-.pitch-lead{font-size:clamp(1rem,1.7vw,1.2rem)!important;color:var(--tx)!important;font-weight:300;letter-spacing:-.01em;max-width:680px!important}
-.intro{max-width:720px}.topline{margin:14px 0 6px}
-.tabs-f{display:flex;gap:6px;flex-wrap:wrap}.tabs-f button{font:inherit;font-size:13px;border:1px solid var(--bd);background:#fff;border-radius:999px;padding:5px 14px;cursor:pointer;color:var(--mu)}
-.tabs-f button.on{background:var(--tx);color:#fff;border-color:var(--tx)}
-.amt.win{color:var(--ok)}
-.hero .seg+.stage{margin-top:0}
-.counters{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;padding:0 0 22px;color:var(--mu);font-size:16px}
-.counters b{color:var(--tx);font-weight:500}.counters .dot{font-style:normal;color:#c9ced6;margin:0 14px}
-a.prev-i{text-decoration:none;color:inherit}
-a.prev-i:hover b{text-decoration:underline}
-.tbl .held a{display:flex;justify-content:center;align-items:center}
 
 /* journey.css */
 .map { background: #cfe0e3; 

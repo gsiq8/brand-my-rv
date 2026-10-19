@@ -23,6 +23,7 @@ export default function Hero({ data, visitors, onView, onMode, onGetSpot, ...rv 
   const pct = goal > 0 ? Math.round((raised / goal) * 100) : 0;
 
 return (
+    
     <section className="hero wrap sec" id="hero">
       <Counters data={data} visitors={visitors} />
       <h1 className="hero-title">{COPY.headline}</h1>
@@ -64,5 +65,6 @@ return (
         </div>
       </div>
     </section>
+    
   );
 }

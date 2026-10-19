@@ -1,10 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import type Stripe from 'stripe';
 import { stripe } from '@/lib/server/stripe';
 import { db } from '@/lib/server/supabase';
-import { markPaid } from '@/lib/server/bids';
-import { after } from 'next/server'; 
-import { notifyDeposit } from '@/lib/server/notify';
+import { markPaid, bidPlaced } from '@/lib/server/bids';
+import { notifyDeposit, notifyLogoCheck } from '@/lib/server/notify';
 
 export const runtime = 'nodejs';
 
@@ -24,9 +23,15 @@ async function onSessionPaid(session: Stripe.Checkout.Session) {
     // só dispara quando ESTA chamada fez a transição (Stripe reenvia webhooks; evita ligar duas vezes)
     const { data: moved } = await db().from('bids')
       .update({ status: 'pending_offer' }).eq('id', bidId).eq('status', 'awaiting_payment')
-      .select('id, spot_id, amount, deposit, display_name, bidders(name, phone, email)')    
-    if (moved?.length) after(() => notifyDeposit(moved[0]));
-  }}
+      .select('id, spot_id, amount, deposit, display_name, bidders(name, phone, email)');
+    if (moved?.length) after(async () => {
+      const b = moved[0];
+      await notifyDeposit(b);
+      await notifyLogoCheck(b, b.deposit, 'secure deposit');   // the logo can be approved already at the deposit stage
+      await bidPlaced(b, b.deposit, 'secure deposit');
+    });
+  }
+}
 
 export async function POST(req: Request) {
   const sig = req.headers.get('stripe-signature');

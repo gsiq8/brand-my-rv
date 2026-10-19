@@ -15,6 +15,7 @@ import Host from './Host';
 import Faq from './Faq'
 import IntroSection from './IntroSection';
 import Background from './Background';
+import { cornerHolders } from '@/lib/corner';
 
 export default function Site() {
   const [data, setData] = useState<BoardResponse | null>(null);
@@ -42,7 +43,8 @@ export default function Site() {
   const logos = useMemo(() => Object.fromEntries(Object.values(board).map((e) => [e.spotId, e.leader?.logoUrl ?? null])), [board]);
   const amounts = useMemo(() => Object.fromEntries(Object.values(board).map((e) => [e.spotId, e.leader?.amount ?? null])), [board]);
   const mins = useMemo(() => Object.fromEntries(Object.values(board).map((e) => [e.spotId, e.min])), [board]);
-
+  const hasCorner = cornerHolders(data?.history ?? []).some((h) => h.current);
+  
   const goView = (name: ViewName) => setView({ name, n: Date.now() });
   const choose = (id: string, scroll: boolean) => {
     setSelected(id); setOpen(true);
@@ -52,22 +54,28 @@ export default function Site() {
   const close = () => { setOpen(false); setDraft(null); };
 
   return (
-    <div id="top">
+    <div className="top" id="top">
       <Header onGetSpot={() => setOpen(true)} />
-      <TopStrip items={data?.history ?? []} entry={board['corner']} onClaim={() => choose('corner', false)} />
+        {hasCorner && <div className="strip-spacer" aria-hidden="true" />} 
+      
       <main>
         <Hero data={data} visitors={visitors} logos={logos} mins={mins} amounts={amounts} mode={mode} selected={selected} draft={draft} view={view}
           onView={goView} onMode={setMode} onSelect={(id) => choose(id, false)} onGetSpot={() => setOpen(true)} />
-        <div className="dark-grey"><IntroSection /></div>
+        
+        <div className="dark-grey">
+          <IntroSection />
+        </div>
 
       <div className="grey">
-        
         <Auction data={data} onBid={(id) => choose(id, true)} />
-        <History items={data?.history ?? []} board={board} />
-        </div>
+        <History items={data?.history ?? []} board={board} />       
+      </div>
+
       <div className="white">
-        <HowItWorks /></div>
-        <div className="grey">
+        <HowItWorks />        
+      </div>
+
+      <div className="grey">
         <Specs />
       </div>
 
@@ -79,6 +87,8 @@ export default function Site() {
       </div>
       
       </main>
+      <TopStrip items={data?.history ?? []} entry={board['corner']} onClaim={() => choose('corner', false)} />
+
       <Footer />
       {open && <BidDrawer board={board} selected={selected} onSelect={(id) => choose(id, false)} onDraft={(spotId, dataUrl) => setDraft(dataUrl ? { spotId, dataUrl } : null)} onClose={close} />}
     </div>
