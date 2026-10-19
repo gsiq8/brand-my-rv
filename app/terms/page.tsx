@@ -43,7 +43,7 @@ export default function Page() {
           <h4 className='text-xl font-semibold tracking-[-0.01em]'>Paying</h4>
           <div className='mt-3 muted space-y-3 text-[15px] leading-relaxed [&_a]:text-blue hover:[&_a]:underline [&_strong]:font-medium [&_strong]:text-ink'>
 
-            <p>Card and other payments are processed by Stripe; I never see or store your card details. Amounts are charged in US dollars. For a deposit reservation, I send an invoice for the balance, due within 7 days. If the balance is not paid, the deposit is kept. I issue the invoice or tax document for what you paid [adapt to your tax rules]. Spots are sold as advertising to businesses and professionals, not consumers.</p>
+            <p>Card and other payments are processed by Stripe; I never see or store your card details. Amounts are charged in US dollars. For a deposit reservation, I send an invoice for the balance, due upon receipt. If the balance is not paid, the deposit is refunded. I issue the invoice or tax document for what you paid [adapt to your tax rules]. Spots are sold as advertising to businesses and professionals, not consumers.</p>
           </div></section>
         <section className='mb-8'>
           <h4 className='text-xl font-semibold tracking-[-0.01em]'>What I promise, and what I don’t</h4>
