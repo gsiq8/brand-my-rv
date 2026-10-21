@@ -19,6 +19,7 @@ export const COPY = {
   specsPrice: '±U$440,000',
   specsLink: { label: 'Check the price', href: '#' },
   specsName: 'Overland Class C Motorhome',
+  specsNameMobile: 'Overland Class C',
   specsNote: 'The chassis comes from a manufacturer partner, so the final model is confirmed once a partner signs on. Anything raised past the goal pays for fuel, maintenance and the next trip. ',
   cornerLead: 'You can also brand this website. One spot, top of the page. Everyone who has held it stays on this list, with how long they lasted – being outbid moves you down, it does not remove you immediately.',
   cornerNote: 'One-time payment, no refund.',

@@ -15,6 +15,11 @@ h1{letter-spacing:-0.06em; font-weight:500;}
 h2{font-size:36px;letter-spacing:-.02em;line-height:calc(2.5 / 2.25);font-weight:600}
 h3{font-size:15px; align-content:center}
 p{font-size: 13px}
+@media (max-width: 760px) {
+  h2{font-size: 28px;}
+  h3{font-size: 14px;} 
+  p{font-size: 10px;}
+}
 .p ul {
   list-style-type: disc !important; /* Força a bolinha (bullet) */
   margin:10px 0 0 20px !important;     /* Dá espaço para a bolinha aparecer */
@@ -96,16 +101,28 @@ p{font-size: 13px}
 .g{color:var(--ok);font-weight:600}
 .track-bar{height:1px;border-radius:999px;background:#e8e8ed;overflow:hidden}
 .track-bar i{display:block;height:100%;border-radius:999px;background:#4aa054;transition:width .6s}
+@media(max-width:760px){
+  .raised{margin: 38px auto 0;}
+  .raised-top-b{font-size: 14px;margin-right: 2px;}
+  .target{font-size: 11px;}
+  .collected{font-size: 11px;}
+  .pitch p{font-size: 12px;}
+  .pitch{padding: 36px 0 8px;}
+  .btn {font-size: 12px;}
+  .btn.pri{font-size: 12px;}
+}
 
 /* intro */
 .dark-grey{background:#1d1d1f}
 .intros{text-align:center;justify-content:center;padding:120px 0}
-.intros h2{color:#fff;font-size:clamp(28px, 67.4px, 60px)!important;letter-spacing:-.025em;font-weight:600;line-height:1.06;margin:0 auto}
+.intros h2{color:#fff;font-size:clamp(28px, 67.4px, 60px) !important;letter-spacing:-.025em;font-weight:600;line-height:1.06;margin:0 auto}
 .dim{color:#98989d}
 .chev{display:inline-block;margin-top:clamp(48px,8vw,110px);color:#fff;opacity:.85}
 .journey{position:relative;isolation:isolate;background:#dedee0} /* mesmo cinza do oceano */
 .grey{background:#f5f5f7;padding:66 0px}
 .white{background:#fff;padding:66 0px}
+@media(max-width:760px){
+.intros h2{font-size:38px !important};}
 
 /* leaderboard */
 /* leaderboard: soft color blobs give the glass something to refract */
@@ -123,6 +140,98 @@ p{font-size: 13px}
   .podium{flex-direction:column;align-items:stretch}
   .podium>.glass-slot{max-width:none}
   .podium .p1{order:1}.podium .p2{order:2}.podium .p3{order:3}
+  .lead{font-size: 11px;}
+  .status{font-size: 10px !important;}
+  .row-h a{font-size: 12px !important;}
+  
+}
+
+/* ---- stacked tables on mobile ---- */
+.size-full { display: none; }
+.auction .c-closes-m { display: none; }
+.brands { list-style: none; margin: 0; padding: 0; }
+.brand-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 20px; border-bottom: 1px solid var(--bd);
+}
+.brand-row:last-child { border-bottom: 0; }
+.brand-logo { flex: 0 0 64px; display: flex; justify-content: center; }
+.brand-logo img { max-height: 36px; max-width: 64px; object-fit: contain; }
+.brand-name {
+  flex: 1 1 0; min-width: 0; font-weight: 500;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.brand-bid { flex: none; display: flex; flex-direction: column; align-items: flex-end; }
+.brand-bid b { font-size: 16px; white-space: nowrap; }
+.brand-bid small { font-size: 11px; }
+
+@media (max-width: 760px) {
+  .seg button{padding: 6px 12px; font-size: 10px;}
+  .row-h .small { font-size: 10px;}
+  /* shared: drop the table semantics */
+  .tbl.stack table, .tbl.stack tbody { display: block; }
+  .tbl.stack thead { display: none; }
+  .tbl.stack tbody tr:hover { background: transparent; }
+  /* every cell becomes a block; scoped under tbody so it beats the specific rules below */
+  .tbl.stack tbody td { display: block; padding: 0; border: 0; font-size: 14px; }
+  /* Auction: one white card per spot */
+  .tbl.cards { background: transparent; border-radius: 0; overflow: visible; box-shadow: none; }
+  /* card: flex with wrapping. Each wrapped line sizes its own items, so rows don't share column widths. */
+  .auction tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 6px;
+    background: #fff; border-radius: 24px; padding: 16px 18px; margin-bottom: 12px; cursor: pointer;
+  }
+
+  /* divider: its own full-width line */
+  .auction tbody tr::before {
+    content: ""; order: 2; flex: 0 0 100%;
+    height: 1px; background: var(--bd); margin: 4px 0 2px;
+  }
+
+  /* line 1: number, name, logo */
+  .auction tbody td.c-spot { display: contents; }
+  .auction tbody td.c-spot .badge {
+    order: 0; flex: none; margin: 0;
+    width: 30px; height: 30px; font-size: 13px; border-radius: 8px;
+    display: inline-grid; place-items: center;
+  }
+  .auction tbody td.c-spot .spot-name { order: 0; flex: 1 1 0; min-width: 0; }
+  .auction tbody td.c-spot .spot-name .medium { font-size: 12px; font-weight: 500; line-height: 1.25; }
+  .auction tbody td.c-spot .spot-name .chip { display: inline-block; margin: 4px 6px 0 !important; font-size: 9px; }
+
+  .auction tbody td.c-held {
+    order: 0; flex: none; display: block; justify-self: center;
+    text-align: right; max-width: 88px; font-size: 12px;
+  }
+  .auction tbody td.c-held img { display: block; margin: 0 0 0 auto; max-height: 40px; max-width: 88px; }
+
+  /* line 2: size, full width */
+  .auction tbody td.c-size { display: contents; }
+  .auction tbody td.c-size .sz,
+  .auction tbody td.c-size > .muted { display: none; }
+  .auction .size-full { order: 1; flex: 0 0 100%; display: block; color: var(--dg); font-size: 10px; }
+
+  /* line 4: price, bid count, timer. Each item sizes to its own content. */
+  .auction tbody td.c-bid { display: contents; }
+  .auction tbody td.c-bid > b {
+    order: 3; flex: none; font-size: 13px; line-height: 1.1; white-space: nowrap;
+  }
+  .auction tbody td.c-bid > .c-qty {
+    order: 3; flex: 1 1 auto; text-align: center; font-size: 10px; white-space: nowrap;
+  }
+  .auction tbody td.c-bid > .c-closes-m {
+    order: 3; flex: none; display: block; margin: 0;
+    text-align: right; font-size: 11px; white-space: nowrap;
+  }
+
+  .auction tbody td.c-closes { display: none; }
+  .brand-bid small { display: none; } 
+  .brand-name {font-size: 11px;}
+  .brand-bid > b {font-size: 11px;}
 }
 
 /* auction */
@@ -168,7 +277,17 @@ p{font-size: 13px}
 .tbl .held img{display:block;margin:0 auto;max-height:48px;max-width:150px;object-fit:contain}
 .badge{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:8px;background:#e5e5ea;font-size:12px;margin-right:14px}
 .sz{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:6px;background:#e5e5ea;font-weight:700;font-size:11px;color:var(--dg);margin-right:8px}
-@media(max-width:760px){.tbl th:nth-child(2),.tbl td:nth-child(2){display:none}.tbl th,.tbl td{padding:14px 12px;font-size:15px}}
+@media(max-width:760px){
+  .tbl th:nth-child(2)
+  .tbl td:nth-child(2){display:none}
+  .tbl th,.tbl td{padding:14px 12px;font-size:15px}
+  .day { font-size: 13px;}
+  .won {font-size: 13px;}
+  .muted.small.block{font-size: 10px !important;}
+  .day summary { padding: 12px 28px;}
+  .days {margin-top: 15px;}
+  #history h3 {font-size: 14px;}
+}
 .status{display:flex;align-items:center;gap:calc(4px * 2);font-size:14px;color:var(--dg);margin-bottom:calc(4px * 4)}
 .live-dot{position:relative;width:8px;height:8px;border-radius:50%;background:#b8b8bd;flex:none}
 .live-dot.on{background:#34c759}
@@ -190,10 +309,29 @@ p{font-size: 13px}
 .faq summary{display:flex;justify-content:space-between;align-items:center;gap:16px;font-weight:600;cursor:pointer;list-style:none}
 .faq summary::-webkit-details-marker{display:none} 
 .faq-icon{flex:none;}
-.faq .glass-slot > *,
-.faq .glass-slot .glass {
+/* O slot cresce com o conteúdo */
+.faq .glass-slot { height: auto !important; }
+
+/* Camadas decorativas da lib (overlays + bordas): preenchem o slot, sem centralização.
+   !important é necessário para vencer os estilos inline da lib. */
+.faq .glass-slot > :not(:has(> .glass)) {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  transform: none !important;
   transition: none !important;
 }
+
+/* Corpo do vidro: no fluxo normal, define a altura do slot */
+.faq .glass-slot > :has(> .glass) {
+  position: relative !important;
+  inset: auto !important;
+  width: 100% !important;
+  transform: none !important;
+  transition: none !important;
+}
+.faq .glass-slot .glass { transition: none !important; }
 .faq details[open] .faq-icon{transform:rotate(45deg)} 
 .faq p{color:var(--mu);margin:10px 0 0}
 .faq-sec{margin:0 auto;padding:30px 26px 30px}
@@ -220,6 +358,13 @@ p{font-size: 13px}
 .faq-glass ul { margin: 10px 0 0; padding-left: 20px; color: var(--mu); }
 .glass-slot { position: relative; }
 
+@media (max-width: 760px) {
+  .tw{font-size: 14px;}
+  .card-row{display: flex;}
+  
+  .k {font-size: 11px !important; text-wrap:nowrap;min-width: 83px !important;}
+  .v {font-size: 10px;}
+}
 /* host */
 .glass-slot { position: relative; container-type: inline-size; width: 100%; max-width: 760px; }
 .faq-glass,
@@ -253,20 +398,21 @@ p{font-size: 13px}
 .row{display:flex;gap:8px;margin-top:18px}.row .btn{flex:1}
 .err{margin-top:12px;font-size:13px;color:#d33}
 .sum{padding:10px 12px;background:var(--soft);border-radius:10px;margin:12px 0}
-.opt{display:flex!important;gap:10px;align-items:flex-start;border:1px solid var(--bd);border-radius:10px;padding:10px;margin:0 0 8px!important;cursor:pointer;font-size:14px!important;color:var(--tx)!important}
-.opt small{display:block;color:var(--mu);font-size:12px}.opt input{margin-top:4px}.dep{border-style:dashed;border-color:var(--ac)}
+.opt{display:flex!important;gap:10px;align-items:flex-start;padding:10px;margin:2px 0 8px!important;cursor:pointer;font-size:12px!important;color:var(--tx)!important}
+.opt small{display:block;color:var(--mu);font-size:11px}.opt input{margin-top:4px}.dep{border-style:dashed;border-color:var(--ac)}
 
 @media (max-width:760px){
   .nav{display:none}.hdr-in{justify-content:space-between}.corner-pill span{display:none}
   .sec{padding-top:48px}
   .drawer{top:auto;width:100%;height:68vh;border-left:0;border-top:1px solid var(--bd);border-radius:18px 18px 0 0}
+  .hint{margin-top: 15px !important; font-size:12px}
 }
 
 /* strip */
 .strip-spacer{height:50px}
 .glass-strip { position: relative; container-type: inline-size; width: 100%; max-width: 1460px; justify-self: center; }
 
-.strip-in{box-sizing:border-box;width:100vw;height:50px;
+.strip-in{box-sizing:border-box;width:100%;height:50px;
   padding:0 max(20px,calc((100vw - 1080px)/2 + 20px));   /* lines up with the header content */
   display:flex;align-items:center;gap:16px;flex-wrap:nowrap;
   color:var(--tx);font:500 14px/1 system-ui,sans-serif}   /* overrides the lib's white 20px text */
@@ -286,6 +432,7 @@ p{font-size: 13px}
 .strip .btn{padding:5px 14px;font-size:13px}
 
 /* journey.css */
+.journey { overflow: clip; } 
 .map { background: #cfe0e3; 
   position: absolute;
   inset: 0;
@@ -313,6 +460,12 @@ p{font-size: 13px}
 .corner-list li{display:flex;align-items:center;gap:12px;padding:8px 0}
 .corner-list img{width:56px;height:56px;object-fit:contain;border-radius:10px;background:#fff;flex:none}
 .corner-list li:first-child img{width:96px;height:96px}  
+@media (max-width:760px){
+  .corner-list li:first-child img{max-width: 80px;}
+  .corner-list li.a > img {max-width: 80px;}
+  .brand-link, .amt{font-size: 14px;}
+  .chip.chip.sold{font-size: 9px}
+}
 
 /* Hero: staggered entrance on page load */
 .hero > * {

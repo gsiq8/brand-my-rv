@@ -5,23 +5,14 @@ import { Plus } from 'lucide-react';
 import { FAQ } from '@/lib/site';
 
 export default function Faq() {
-  const slot = useRef<HTMLDivElement>(null);
   const inner = useRef<HTMLDivElement>(null);
 
+  // Só avisa a lib para reler o tamanho (usado pelo filtro de refração).
+  // Borda e altura agora são CSS puro, ver faq-glass.css.
   useLayoutEffect(() => {
-    const el = inner.current, box = slot.current;
-    if (!el || !box) return;
-
-    const sync = () => {
-      const h = el.offsetHeight;
-      if (box.style.height !== `${h}px`) {
-        box.style.height = `${h}px`;               // mesmo frame da mudança de conteúdo
-        window.dispatchEvent(new Event('resize')); // a lib relê o glassSize
-      }
-    };
-
-    sync();
-    const ro = new ResizeObserver(sync);
+    const el = inner.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => window.dispatchEvent(new Event('resize')));
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
@@ -30,7 +21,7 @@ export default function Faq() {
     <section className="wrap faq-sec" id="faq">
       <h2>Questions &amp; answers</h2>
       <div className="faq">
-        <div className="glass-slot" ref={slot} style={{ height: 420 }}>
+        <div className="glass-slot">
           <LiquidGlass
             padding="0"
             mode="prominent"

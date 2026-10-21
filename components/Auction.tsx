@@ -18,7 +18,7 @@ function closing(e?: BoardEntry) {
     default:
       return e?.closesAt
         ? <Countdown until={e.closesAt} />
-        : <span className="muted small">Starts with first hold</span>;
+        : <span className="muted md:small text-[9px]">Starts with first hold</span>;
   }
 }
 
@@ -38,7 +38,7 @@ export default function Auction({ data, onBid }: { data: BoardResponse | null; o
 
   return (
     <div className="all">
-      <section className="wrap card-sec" id="spots">
+      <section className="wrap card-sec auction" id="spots">
         <div className="status">
           <span className={'live-dot' + (live ? ' on' : '')} aria-hidden="true" />
           <span>{live ? 'Auction live' : 'Auction ended'}</span>
@@ -53,48 +53,68 @@ export default function Auction({ data, onBid }: { data: BoardResponse | null; o
         </>)}
 
         <div className="row-h">
-          <div className="seg" role='tablsit' aria-label='View'>
-            {GROUPS.map((g) => <button key={g} className={g === group ? 'on' : ''} onClick={() => setGroup(g)}>{g}</button>)}</div>
+          <div className="seg" role="tablist" aria-label="Group">{
+          GROUPS.map((g) => <button key={g} className={g === group ? 'on' : ''} onClick={() => setGroup(g)}>{g}</button>)}</div>
           <span className="muted small">{data?.stats.bids ?? 0} bids in total</span>
         </div>
-        <div className="card tbl"><table>
-          <thead><tr><th>Spot</th><th>Size</th><th>Held by</th><th>Closes</th><th className="r">Current bid</th></tr></thead>
-          <tbody>
-            {list.map(({ s, i, e }) => {
-              const open = !e?.state || e.state === 'open';
-              return (
-                <tr key={s.id}
-                  onClick={() => open && onBid(s.id)}
-                  tabIndex={open ? 0 : -1}
-                  onKeyDown={(ev) => open && ev.key === 'Enter' && onBid(s.id)}
-                  style={open ? undefined : { cursor: 'default', opacity: 0.7 }}>
-                  <td>
-                    <span className="badge">{i}</span>
-                    <span className="medium">{s.name}</span>
-                    {s.truckOnly && <span className="chip wait" style={{ marginLeft: 8 }}>Truck brands only</span>}
-                    {s.builderOnly && <span className="chip wait" style={{ marginLeft: 8 }}>Builder brands only</span>}
-                  </td>
-                  <td>
-                    <span className="sz">{sizeInfo(s).label[0]}</span>
-                    <span className="muted small">{sizeInfo(s).cm.replace('≈ ', '')}</span>
-                  </td>
-                  <td className="held">{e?.leader ? (() => {
-                    const L = e.leader;
-                    const inner = L.logoUrl ? <img src={L.logoUrl} alt={L.name} /> : L.name;
-                    return L.website
-                      ? <a href={L.website} target="_blank" rel="noopener noreferrer sponsored"
+
+        <div className="card tbl stack cards">
+          <table>
+            <thead>
+              <tr>
+                <th>Spot</th><th>Size</th><th>Held by</th><th>Closes</th><th className="r">Current bid</th>
+              </tr>
+            </thead>
+            <tbody>
+              {list.map(({ s, i, e }) => {
+                const open = !e?.state || e.state === 'open';
+                const info = sizeInfo(s);
+                const cm = info.cm.replace('≈ ', '');
+                return (
+                  <tr key={s.id}
+                    onClick={() => open && onBid(s.id)}
+                    tabIndex={open ? 0 : -1}
+                    onKeyDown={(ev) => open && ev.key === 'Enter' && onBid(s.id)}
+                    style={open ? undefined : { cursor: 'default', opacity: 0.7 }}>
+
+                    <td className="c-spot">
+                      <span className="badge">{i}</span>
+                      <span className="spot-name">
+                        <span className="medium">{s.name}</span>
+                        {s.truckOnly && <span className="chip wait" style={{ marginLeft: 8 }}>Truck brands only</span>}
+                        {s.builderOnly && <span className="chip wait" style={{ marginLeft: 8 }}>Builder brands only</span>}
+                      </span>
+                    </td>
+
+                    <td className="c-size">
+                      <span className="sz">{info.label[0]}</span>
+                      <span className="muted small">{cm}</span>
+                      <span className="size-full">{info.label} · {cm}</span>
+                    </td>
+
+                    <td className="held c-held">{e?.leader ? (() => {
+                      const L = e.leader;
+                      const inner = L.logoUrl ? <img src={L.logoUrl} alt={L.name} /> : L.name;
+                      return L.website
+                        ? <a href={L.website} target="_blank" rel="noopener noreferrer sponsored"
                           onClick={(ev) => ev.stopPropagation()} onKeyDown={(ev) => ev.stopPropagation()}>{inner}</a>
-                      : inner;
-                  })() : <span className="muted">Open</span>}
-                  </td>
-                  <td className="small">{closing(e)}</td>
-                  <td className="r"><b>{e?.leader ? money(e.leader.amount) : `from ${money(s.price)}`}</b>
-                    <div className="muted small">{e?.bids ?? 0} bid{e?.bids === 1 ? '' : 's'}</div></td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table></div>
+                        : inner;
+                    })() : <span className="muted">Open</span>}
+                    </td>
+
+                    <td className="small c-closes">{closing(e)}</td>
+
+                    <td className="r c-bid">
+                      <b>{e?.leader ? money(e.leader.amount) : `from ${money(s.price)}`}</b>
+                      <div className="muted small c-qty">{e?.bids ?? 0} bid{e?.bids === 1 ? '' : 's'}</div>
+                      <div className="c-closes-m small">{closing(e)}</div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </section>
     </div>
   );

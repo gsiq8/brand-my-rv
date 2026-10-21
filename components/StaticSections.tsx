@@ -27,7 +27,8 @@ export function Specs() {
     <p className="lead mb-5">{COPY.specsSub}</p>
     <div className="card">
       <div className="card-head">
-        <h3 className="tw">{COPY.specsName}</h3>
+        <h3 className="hidden md:block tw">{COPY.specsName}</h3>
+        <h3 className="sm:hidden tw">{COPY.specsNameMobile}</h3>
         <h3 className="tw">{COPY.specsPrice}</h3>
       </div>
       {SPECS.map(([k, v]) => <div className="card-row" key={k}>
