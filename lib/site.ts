@@ -68,10 +68,10 @@ export const FAQ: { q: string; a: string; [key: string]: string | undefined; }[]
   },
   {
     q: 'How does payment work?',
-    a: 'This is a hold / pre-authorization model, which is the standard for auction platforms.',
-    u_b: 'When you place a bid, Stripe places a temporary hold on the card limit for the bid amount. No money leaves your account immediately.',
-    u_c: 'If another company outbids you, the previous hold is released instantly and the limit becomes available again. No physical refund is needed.',
-    u_d: 'Only when the auction closes and the spot is awarded is the amount captured for real. Until then, the card is only being reserved against the limit.',
+    a: 'Auction spots use a card hold (pre-authorization). Nothing is charged to your card.',
+    u_b: 'When you bid, your card limit is reserved for the bid amount. Nothing leaves your account.',
+    u_c: 'If someone outbids you, the hold is released automatically when their bid goes live.',
+    u_d: 'A spot closes five days after its first hold. The winner receives a contract and invoice and pays by bank transfer within 48 hours. Only then is the hold released.',
   },
   {
     q: 'What if someone outbids me?',

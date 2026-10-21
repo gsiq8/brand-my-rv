@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { isAdmin } from '@/lib/server/admin';
-import { approveLogo } from '@/lib/server/bids';
+import { approveLogo } from '@/lib/server/auction';
 
 // Approve the logo. Refusing = use the Cancel button (it refunds).
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {

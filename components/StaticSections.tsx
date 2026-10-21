@@ -49,7 +49,7 @@ export function Footer() {
       <div className="wrap">
         <nav>
           <a href="#spots">The auction</a><a href="/leaderboard">Leaderboard</a><a href="/replay">Replay</a><a href="#how">How it works</a>
-          <a href="#corner">The corner</a><a href="#specs">The motorhome</a><a href="#faq">FAQ</a>
+          <a href="#corner">The strip</a><a href="#specs">The motorhome</a><a href="#faq">FAQ</a>
         </nav>
         <nav><a href="/privacy">Privacy</a><a href="/terms">Terms</a></nav>
         {/* <p className="muted small">{COPY.disclaimer}</p> */}

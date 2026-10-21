@@ -10,7 +10,7 @@ export default function Header({ onGetSpot }: { onGetSpot: () => void }) {
           <a href="#spots">The auction</a>
           <a href="/leaderboard">Leaderboard</a>
           {/* <a href="/replay">Replay</a> */}
-          <a href="#corner">The corner</a>
+          <a href="#corner">The strip</a>
         </nav>
         <button className="btn dark" onClick={onGetSpot}>Get a spot</button>
       </div>

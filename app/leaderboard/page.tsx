@@ -19,6 +19,8 @@ const TABS: [Tab, string, string][] = [
   ['outbid', 'Most outbid', 'Brands that lost the most spots to a higher bid.'],
   ['newest', 'Newest first', 'Every paid bid, latest first.'],
 ];
+const LIVE_LIKE = ['paid', 'outbid', 'won', 'settled', 'defaulted']; // bids that were placed and approved
+
 
 export default function Leaderboard() {
 
@@ -33,8 +35,7 @@ export default function Leaderboard() {
 
 
   const { rows, bids, brands } = useMemo(() => {
-    const paid = (d?.history ?? []).filter((h) => h.status === 'paid');
-    const leaders = new Map((d?.board ?? []).map((e) => [e.spotId, e.leader]));
+    const paid = (d?.history ?? []).filter((h) => LIVE_LIKE.includes(h.status));    const leaders = new Map((d?.board ?? []).map((e) => [e.spotId, e.leader]));
     const live = (h: HistoryItem) => { const l = leaders.get(h.spotId); return !!l && l.amount === h.amount && l.name === h.name; };
     const spot = (id: string) => SPOTS.find((s) => s.id === id)?.name ?? id;
     const day = (iso: string) => new Date(iso).toLocaleDateString('en-US', { day: 'numeric', month: 'short' });

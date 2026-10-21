@@ -9,27 +9,40 @@ export default function Page() {
           <div className='mt-3 muted space-y-3 text-[15px] leading-relaxed [&_a]:text-blue hover:[&_a]:underline [&_strong]:font-medium [&_strong]:text-ink'>
             <p>Advertising spots on the surfaces of a Class C expedition motorhome: sides, rear and roof (and the front, for truck and builder brands only). A spot buys a logo printed in automotive vinyl and displayed in the auction board, photos and public-facing trip record.</p>
             <p>You can also take “the strip”, the top of this website: a one-time payment, non-refundable, that stays at the top until someone bids higher; everyone who held it stays listed.</p>
-            <p>This is a personal project run by Giovana Siquieroli, operating as "Gsiq". It is not affiliated with, endorsed by or sponsored by any vehicle maker or brand shown.</p>
+            <p>This is a personal project run by Giovana Siquieroli, operating as "GOIA". It is not affiliated with, endorsed by or sponsored by any vehicle maker or brand shown.</p>
           </div>
         </section>
 
         <section className='mb-8'>
           <h4 className='text-xl font-semibold tracking-[-0.01em]'>How bidding works</h4>
-          <div className='mt-3 muted space-y-3 text-[15px] leading-relaxed [&_a]:text-blue hover:[&_a]:underline [&_strong]:font-medium [&_strong]:text-ink'>
+          <div className='mt-3 muted space-y-3 text-[15px] leading-relaxed'>
             <ul>
-              <li>Each spot has a starting price. A new bid must beat the highest live bid by at least US$100.</li>
-              <li>When you place a bid, the <b>card limit is reserved with a temporary hold</b> for the amount. This is not a charge and no money leaves your account immediately.</li>
-              <li>If another bidder tops your bid, the previous hold is <b>released automatically</b> and the reserve becomes available again without a physical refund or manual transfer.</li>
-              <li>The amount is <b>captured only after the auction closes and the spot is awarded</b>. Until then, the card is only being reserved against the available limit.</li>
-              <li>Some spots are reserved for truck or builder brands. I may refuse a bid on those spots from other brands.</li>
+              <li>Each spot has a starting price. A new bid must be at least US$100 above the current live bid.</li>
+              <li>A bid places a <b>card hold (pre-authorization)</b> for its amount on your card. Nothing is charged to the card.</li>
+              <li>A bid goes live, and sets the price, only after its logo is approved. While a logo is under review, prices do not change.</li>
+              <li>A spot closes <b>five days after its first card hold</b> is placed. Anyone may outbid until it closes.</li>
+              <li>If two bids are for the same amount, the first one placed wins.</li>
             </ul>
           </div>
         </section>
 
         <section className='mb-8'>
           <h4 className='text-xl font-semibold tracking-[-0.01em]'>If you are outbid</h4>
-          <div className='mt-3 muted space-y-3 text-[15px] leading-relaxed [&_a]:text-blue hover:[&_a]:underline [&_strong]:font-medium [&_strong]:text-ink'>
-            <p>When someone else’s live bid overtakes yours, the earlier hold is cancelled and released automatically. No money is debited from your account at that time, and no refund of physical cash is required. Your bid remains visible in the bid history and may reappear if a later возврат allows a fresh offer.</p>
+          <div className='mt-3 muted space-y-3 text-[15px] leading-relaxed'>
+            <p>When a higher bid goes live, your card hold is cancelled automatically. No money is debited, and no refund is needed. Your bid stays visible in the bid history.</p>
+          </div>
+        </section>
+
+        <section className='mb-8'>
+          <h4 className='text-xl font-semibold tracking-[-0.01em]'>Closing and settlement</h4>
+          <div className='mt-3 muted space-y-3 text-[15px] leading-relaxed'>
+            <ul>
+              <li>When the spot closes, the highest live bid wins. The winner receives a Sponsorship Agreement and a Commercial Invoice from "GOIA" by email.</li>
+              <li>The winner signs the agreement and pays the full amount by bank transfer within 48 hours of the closing notice. The bid is <b>not charged to the card</b>.</li>
+              <li>When the transfer is received, the card hold is released and the spot is sold.</li>
+              <li>If the transfer is not received within 48 hours, a media exposure fee of <b>10% of the winning bid</b> is charged to the held card, and the rest of the hold is released automatically. The spot is then not sold to that bidder.</li>
+              <li>A logo is produced only after the Sponsorship Agreement is signed.</li>
+            </ul>
           </div>
         </section>
 
@@ -43,8 +56,8 @@ export default function Page() {
 
         <section className='mb-8'>
           <h4 className='text-xl font-semibold tracking-[-0.01em]'>Paying</h4>
-          <div className='mt-3 muted space-y-3 text-[15px] leading-relaxed [&_a]:text-blue hover:[&_a]:underline [&_strong]:font-medium [&_strong]:text-ink'>
-            <p>Card payments are processed by Stripe. A bid creates a pre-authorization hold on the card limit. The money is not charged immediately. If you are outbid, the hold is cancelled instantly. If you win, the hold is captured only when the auction closes and the spot is awarded. I never see or store your full card number; Stripe handles the payment flow and the card data.</p>
+          <div className='mt-3 muted space-y-3 text-[15px] leading-relaxed'>
+            <p>Card payments are processed by Stripe. A bid places a pre-authorization on the card limit, which is not a charge. The Strip is a one-time card payment, charged at checkout, and refunded only if we refuse the logo. I never see or store your full card number.</p>
           </div>
         </section>
 
@@ -66,7 +79,7 @@ export default function Page() {
         <section className='mb-8'>
           <h4 className='text-xl font-semibold tracking-[-0.01em]'>Questions</h4>
           <div className='mt-3 muted space-y-3 text-[15px] leading-relaxed [&_a]:text-blue hover:[&_a]:underline [&_strong]:font-medium [&_strong]:text-ink'>
-            <p>Email <a href={`mailto:${CONTACT}`}>{CONTACT}</a>. These terms are governed by the laws of Brazil.</p>
+            <p>Email <a href={`mailto:${CONTACT}`}>{CONTACT}</a>. These terms are governed by the laws of Uruguay.</p>
           </div>
         </section>
       </Legal>

@@ -12,9 +12,9 @@ export default function Counters({ data, visitors }: { data: BoardResponse | nul
   if (data) items.push({ v: `${data.stats.taken}/${data.stats.total}`, l: 'spots sold' });
   if (!items.length) return null;
   return (
-    <div className="counters">
+    <div className="counters text-[12px] mb-5 muted ">
       {items.map((it, i) => (
-        <span key={it.l}>{i > 0 && <i className="dot">•</i>}<b>{it.v}</b> {it.l}</span>
+        <span key={it.l}>{i > 0 && <i className="dot text-(--mm)"> • </i>}<b> {it.v}</b> {it.l}</span>
       ))}
     </div>
   );

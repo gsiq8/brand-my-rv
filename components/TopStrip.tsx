@@ -29,7 +29,7 @@ return (
     padding="0" cornerRadius={0} mode="polar"
     blurAmount={0.2} aberrationIntensity={4} saturation={160}
     elasticity={0} displacementScale={10}
-    style={{ position: 'fixed', top: `${top + 25}px`, left: '50%' }}
+    style={{ position: 'fixed', top: `${top + 15}px`, left: '50%' }}
   >
     <div className="strip-in">
       <div className="mq" aria-label={`${name} holds the corner, paid ${money(amount)}`}>

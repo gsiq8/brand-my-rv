@@ -1,12 +1,22 @@
 const API = 'https://a.klaviyo.com/api';
-const headers = (key: string) => ({ Authorization: `Klaviyo-API-Key ${key}`, revision: '2026-10-15', 'Content-Type': 'application/json', Accept: 'application/json' });
+const headers = (key: string) => ({ Authorization: `Klaviyo-API-Key ${key}`, revision: '2024-10-15', 'Content-Type': 'application/json', Accept: 'application/json' });
 const post = (key: string, path: string, body: unknown) =>
   fetch(`${API}${path}`, { method: 'POST', headers: headers(key), body: JSON.stringify(body), signal: AbortSignal.timeout(8000) });
 
-/** Sends an event to Klaviyo; a Flow triggered by that metric sends the email. Never throws. */
+export type KlaviyoMetric =
+  | 'Bid Placed'
+  | 'Bid Outbid'
+  | 'Bid Won'
+  | 'Bid Refused'
+  | 'Logo Approved'
+  | 'Logo Refused';
+
 export async function klaviyoTrack(
-  email: string | undefined, metric: 'Bid Placed' | 'Bid Outbid', properties: Record<string, unknown>, uniqueId: string,
+  email: string | undefined,
+  metric: KlaviyoMetric,
+  properties: Record<string, unknown>, uniqueId: string,
 ) {
+
   const key = process.env.KLAVIYO_PRIVATE_KEY;
   if (!key || !email) return;
   try {
@@ -15,8 +25,8 @@ export async function klaviyoTrack(
       metric: { data: { type: 'metric', attributes: { name: metric } } },
       profile: { data: { type: 'profile', attributes: { email } } },
     } } });
-    if (!r.ok) console.error('klaviyo event failed', r.status, await r.text());
-  } catch (e) { console.error('klaviyo event failed', e); }
+    if (!r.ok) console.error('klaviyo event failed', metric, r.status, await r.text());
+  } catch (e) { console.error('klaviyo event failed', metric, e); }
 }
 
 /** Creates/updates the profile and adds it to the bidders list. Does NOT subscribe them to marketing. Never throws. */

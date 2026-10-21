@@ -26,30 +26,30 @@ return (
     
     <section className="hero wrap sec" id="hero">
       <Counters data={data} visitors={visitors} />
-      <h1 className="hero-title">{COPY.headline}</h1>
-      <h3 className="hero-sub">{COPY.sub}</h3>
+      <h1 className="hero-title text-[58px]">{COPY.headline}</h1>
+      <h3 className="hero-sub text-[15px]">{COPY.sub}</h3>
 
       {goal > 0 && (
       <div className="raised">
         <div className="raised-top">
           <div className="target-wrap">
-          <span className="raised-top-b">{money(raised)}</span>
-          <span className="target"> raised</span>
+          <span className="raised-top-b">{money(raised)} </span>
+          <span className="target">  raised</span>
         </div>
         <div className="collected">
           <span>{pct >= 100 ? 'goal passed' : `goal ${money(goal)}`} · 
-            <span className="g">{pct}%</span>
+            <span className="g"> {pct}%</span>
           </span>
         </div>
       </div>
-        <div className="track-bar">
+        <div className="track-bar mb-4">
           <i style={{ width: `${Math.min(100, pct)}%` }} /></div>
       </div>  
       )}
       <div className="seg" role="tablist" aria-label="View">
         {VIEWS.map(([n, label]) => <button key={n} className={rv.view?.name === n ? 'on' : ''} onClick={() => onView(n)}>{label}</button>)}
       </div>
-      <div className="stage"><Motorhome3D {...rv} /></div>
+      <div className="stage mt-4 "><Motorhome3D {...rv} /></div>
       <div className="seg" role="tablist" aria-label="Mode">
         <button className={rv.mode === 'auction' ? 'on' : ''} onClick={() => onMode('auction')}>The auction</button>
         <button className={rv.mode === 'final' ? 'on' : ''} onClick={() => onMode('final')}>Final look</button>

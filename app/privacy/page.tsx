@@ -7,7 +7,7 @@ export default function Page() {
         <section className='mb-8'>
           <h4 className='text-xl font-semibold tracking-[-0.01em]'>Who I am</h4>
           <div className='mt-3 muted space-y-3 text-[15px] leading-relaxed [&_a]:text-blue hover:[&_a]:underline [&_strong]:font-medium [&_strong]:text-ink'>
-            <p>Brand My RV is run by Giovana Siquieroli, operating as "Gsiq" (“I”, “me”). I am the data controller for everything described here. Contact: <span className="text-orange-500"><a href={`mailto:${CONTACT}`}>{CONTACT}</a></span>.</p>
+            <p>Brand My RV is run by Giovana Siquieroli, operating as "GOIA SAS", RUT-220772290013. I am the data controller for everything described here. Contact: <span className="text-orange-500"><a href={`mailto:${CONTACT}`}>{CONTACT}</a></span>.</p>
           </div>
         </section>
         <section className='mb-8'>
@@ -20,7 +20,8 @@ export default function Page() {
               <li><b>Address and ID / tax number</b> – needed to issue invoices and tax documents. Never published.</li>
               <li><b>Logo file and website</b> – what gets printed on the motorhome and linked from this page once approved.</li>
               <li><b>Bid amount and time</b> – the auction cannot work without them; the amount is public once your bid is live.</li>
-              <li><b>A payment reference</b> – the identifiers Stripe returns, so a payment can be refunded or matched to an invoice. <b>Card numbers never reach this site</b>; you type them on Stripe’s own page.</li>
+              <li><b>Stripe</b> – places card holds, captures the media fee if a winner defaults, and processes refunds. Your card number never reaches this site.</li>
+              <li><b>Klaviyo</b> – keeps our bidder lists organized and sends bid notifications (outbid, won). You are added to the list only if you tick the box at checkout.</li>
               <li><b>A Telegram chat ID</b> – only if you open our Telegram bot and press Start. It is used for bid updates and nothing else.</li>
             </ul>
           </div>
@@ -29,7 +30,7 @@ export default function Page() {
           <h4 className='text-xl font-semibold tracking-[-0.01em]'>What is public and what is not</h4>
           <div className='mt-3 muted space-y-3 text-[15px] leading-relaxed [&_a]:text-blue hover:[&_a]:underline [&_strong]:font-medium [&_strong]:text-ink'>
 
-            <p>Once your logo is approved and your payment cleared, your <b>brand name, logo, website and bid amount</b> appear on this site – that is the point of the auction. A deposit reservation appears in the bid history with the brand name and amount, but without a logo, until it is completed and approved. Your email, phone, address and ID are <b>never published</b> and never shared with other bidders. Your logo is not visible to anyone but me until I approve it.</p>
+            <p>Once your logo is approved and your payment cleared, your <b>brand name, logo, website and bid amount</b> appear on this site – that is the point of the auction. Your email, phone, address and ID are <b>never published</b> and never shared with other bidders. Your logo is not visible to anyone but me until I approve it.</p>
           </div>
         </section>
         <section className='mb-8'>
@@ -66,7 +67,7 @@ export default function Page() {
           <h4 className='text-xl font-semibold tracking-[-0.01em]'>Your rights</h4>
           <div className='mt-3 muted space-y-3 text-[15px] leading-relaxed [&_a]:text-blue hover:[&_a]:underline [&_strong]:font-medium [&_strong]:text-ink'>
 
-            <p>Under GDPR you can ask for a copy of your data, correct it, or have it deleted. Email <a href={`mailto:${CONTACT}`}>{CONTACT}</a> and I will answer within one month. You can also complain to ANPD.</p>
+            <p>Under LGPD you can ask for a copy of your data, correct it, or have it deleted. Email <a href={`mailto:${CONTACT}`}>{CONTACT}</a> and I will answer within one month. You can also complain to ANPD.</p>
           </div>
         </section>
         <section className='mb-8'>

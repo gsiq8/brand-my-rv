@@ -9,10 +9,12 @@ export default async function Success({ searchParams }: { searchParams: Promise<
     <main style={{ maxWidth: 520, margin: '12vh auto', padding: 24, textAlign: 'center' }}>
       <h1>Thank you!</h1>
       <p style={{ ...p, marginTop: 16 }}>
-        We are confirming your payment. Once it is confirmed, your logo is reviewed; when it is approved it goes live on the motorhome and appears on the bid board.
-        This usually takes a few seconds for the payment; some payment methods (such as Pix or bank transfer) can take longer.
+        We are confirming your card. For an auction spot, nothing is charged: the amount is only held, and released if you are outbid.
+        Your logo goes live on the motorhome and on the bid board once it is approved.
       </p>
-      <p style={{ ...p, marginTop: 12 }}>If you reserved with a deposit, we will contact you to arrange the balance.</p>
+      <p style={{ ...p, marginTop: 12 }}>
+        If you win, you will receive the contract and invoice by email. The balance is paid by bank transfer within 48 hours.
+      </p>
       {tg && (
         <p style={{ ...p, marginTop: 12 }}>
           Want bid updates on Telegram too? <a href={tg} style={{ color: '#2563eb' }}>Open our bot and press Start</a>.

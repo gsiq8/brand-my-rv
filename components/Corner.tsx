@@ -12,7 +12,7 @@ export default function Corner({ entry, items, onBid }: { entry?: BoardEntry; it
   const holders = cornerHolders(items);
   return (
     <section className="wrap faq-sec" id="corner">
-      <h2>The corner</h2>
+      <h2>The strip</h2>
       <p className="lead">{COPY.cornerLead}</p>
       <ul className="corner-list">
         {holders.length === 0 && <li className="muted">Nobody yet – be the first.</li>}
@@ -26,7 +26,7 @@ export default function Corner({ entry, items, onBid }: { entry?: BoardEntry; it
           </li>
         ))}
       </ul>
-      <button className="btn pri" onClick={onBid}>Take the corner — {money(entry?.min ?? spot.price)}</button>
+      <button className="btn pri" onClick={onBid}>Take the strip — {money(entry?.min ?? spot.price)}</button>
       <p className="muted small" style={{ marginTop: 10 }}>{COPY.cornerNote}</p>
     </section>
   );
