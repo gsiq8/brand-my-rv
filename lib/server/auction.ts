@@ -200,11 +200,20 @@ export async function cancelBid(bidId: string) {
   const b = await mustBid(bidId);
   if (!['awaiting_payment', 'review', 'paid'].includes(b.status))
     throw new Error(`a bid that is ${b.status} cannot be cancelled`);
-  if (b.status === 'awaiting_payment' && b.stripe_session_id) {
-    try { await stripe().checkout.sessions.expire(b.stripe_session_id); } catch { /* already completed or expired */ }
+
+  let pi = b.payment_intent_id;
+  if (b.stripe_session_id) {
+    const s = stripe();
+    const session = await s.checkout.sessions.retrieve(b.stripe_session_id);
+    if (session.status === 'open') await s.checkout.sessions.expire(session.id);
+    // the hold lives on the PaymentIntent; recover it if the webhook never saved it
+    pi = pi ?? (typeof session.payment_intent === 'string'
+      ? session.payment_intent
+      : session.payment_intent?.id ?? null);
   }
+
   if (b.status === 'review') await track(b, 'Logo Refused');
-  await refuse(b, 'refused by the organizer.');
+  await refuse({ ...b, payment_intent_id: pi }, 'refused by the organizer.');
 }
 
 /** Wire received for a won spot. Releases the hold and closes the spot as sold. */
