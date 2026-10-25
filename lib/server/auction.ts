@@ -158,6 +158,11 @@ async function goLive(b: BidRow) {
     .eq('spot_id', b.spot_id).eq('status', 'paid').order('amount', { ascending: false }).limit(1);
   const floor = top?.[0] ? top[0].amount + CONFIG.bidStep : (spotOf(b.spot_id)?.price ?? 0);
   if (b.amount < floor) return refuse(b, `another bid went live first, and the minimum is now ${money(floor)}.`);
+  const { data: spot } = await db().from('spot_auctions')
+  .select('status, closes_at').eq('spot_id', b.spot_id).maybeSingle();
+  if (spot && (spot.status !== 'open' || (spot.closes_at && new Date(spot.closes_at) <= new Date()))) {
+  return refuse(b, 'the auction closed before your logo was approved.');
+}
 
   const logo_path = await publishLogo(b);
   const { data: moved, error } = await db().from('bids')
@@ -229,16 +234,13 @@ export async function settleBid(bidId: string) {
 /* ---------- Scheduled (called by /api/cron/close) ---------- */
 
 /** Closes spots whose timer has run out. Waits while any hold is still in review, so no live-looking bid is ignored. */
+/** Closes spots whose timer has run out. Does not wait for logo reviews: a late approval is refused in goLive. */
 export async function closeDueAuctions() {
   const { data: due } = await db().from('spot_auctions').select('spot_id')
     .eq('status', 'open').not('closes_at', 'is', null).lte('closes_at', new Date().toISOString());
   const closed: string[] = [];
 
   for (const { spot_id } of due ?? []) {
-    const { count } = await db().from('bids').select('id', { count: 'exact', head: true })
-      .eq('spot_id', spot_id).eq('status', 'review');
-    if (count) continue;
-
     const { data: top } = await db().from('bids').select(BID)
       .eq('spot_id', spot_id).eq('status', 'paid')
       .order('amount', { ascending: false }).order('created_at', { ascending: true }).limit(1);
@@ -249,8 +251,12 @@ export async function closeDueAuctions() {
       continue;
     }
 
+    // Claim the winner first. If another run already did, this matches no rows and we stop.
+    const { data: marked } = await db().from('bids').update({ status: 'won' })
+      .eq('id', w.id).eq('status', 'paid').select('id');
+    if (!marked?.length) continue;
+
     const wireBy = new Date(Date.now() + CONFIG.wireHours * 3600e3).toISOString();
-    await db().from('bids').update({ status: 'won' }).eq('id', w.id).eq('status', 'paid');
     await db().from('spot_auctions').update({
       status: 'closed', winner_bid_id: w.id, closed_at: new Date().toISOString(), wire_deadline_at: wireBy,
     }).eq('spot_id', spot_id).eq('status', 'open');
@@ -285,7 +291,12 @@ export async function defaultDueAuctions() {
       continue;
     }
     await db().from('bids').update({ status: 'defaulted', refund_note: `media fee captured: ${cents / 100}` }).eq('id', w.id);
-    await db().from('spot_auctions').update({ status: 'defaulted' }).eq('spot_id', d.spot_id);
+    await db().from('spot_auctions').update({
+      status: 'open',
+      closes_at: null,
+      winner_bid_id: null,
+      wire_deadline_at: null,
+    }).eq('spot_id', d.spot_id);
     await Promise.allSettled([
       tell(w, `The wire was not received in time, so a ${CONFIG.defaultPercent}% media exposure fee was charged to your card. The rest of the hold was released.`),
       notifyAdmin('Spot defaulted', `${spotName(w.spot_id)}: fee ${cents / 100} captured from ${w.display_name}.`),

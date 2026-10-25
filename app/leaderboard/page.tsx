@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { SPOTS } from '@/lib/spots';
 import { COPY } from '@/lib/site';
+import { CONFIG } from '@/lib/config';
 import { money } from '@/lib/format';
 import { cornerHolders } from '@/lib/corner';
 import BrandLink from '@/components/BrandLink';
@@ -12,44 +13,72 @@ import BidDrawer from '@/components/BidDrawer';
 import type { BoardEntry, BoardResponse, HistoryItem } from '@/lib/types';
 
 type Tab = 'biggest' | 'most' | 'outbid' | 'newest';
-type Row = { key: string; name: string; logoUrl: string | null; website: string | null; big: string; sub: string; live: boolean };
+type Row = { key: string; name: string; logoUrl: string | null; website: string | null; big: string; sub: string; live: boolean; note?: string | null; };
+
 const TABS: [Tab, string, string][] = [
   ['biggest', 'Biggest bids', 'Every paid bid, highest first.'],
   ['most', 'Most bids', 'Brands ranked by how many paid bids they placed.'],
   ['outbid', 'Most outbid', 'Brands that lost the most spots to a higher bid.'],
   ['newest', 'Newest first', 'Every paid bid, latest first.'],
 ];
-const LIVE_LIKE = ['paid', 'outbid', 'won', 'settled', 'defaulted']; // bids that were placed and approved
 
+// Bids that were placed and approved (a spot-holding status or a past one).
+const LIVE_LIKE = ['paid', 'outbid', 'settled', 'defaulted'];
 
 export default function Leaderboard() {
-
   const [d, setD] = useState<BoardResponse | null>(null);
   const [tab, setTab] = useState<Tab>('biggest');
   const [selected, setSelected] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
-  useEffect(() => { fetch('/api/board', { cache: 'no-store' }).then((r) => r.json()).then(setD).catch(() => {}); }, []);
+  const [spotFilter, setSpotFilter] = useState<string | null>(null);
 
-  const board = useMemo<Record<string, BoardEntry>>(() => Object.fromEntries((d?.board ?? []).map((e) => [e.spotId, e])), [d]);
+  useEffect(() => {
+    fetch('/api/board', { cache: 'no-store' }).then((r) => r.json()).then(setD).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    setSpotFilter(new URLSearchParams(window.location.search).get('spot'));
+  }, []);
+
+  const board = useMemo<Record<string, BoardEntry>>(
+    () => Object.fromEntries((d?.board ?? []).map((e) => [e.spotId, e])),
+    [d],
+  );
   const hasCorner = cornerHolders(d?.history ?? []).some((h) => h.current);
 
-
   const { rows, bids, brands } = useMemo(() => {
-    const paid = (d?.history ?? []).filter((h) => LIVE_LIKE.includes(h.status));    const leaders = new Map((d?.board ?? []).map((e) => [e.spotId, e.leader]));
-    const live = (h: HistoryItem) => { const l = leaders.get(h.spotId); return !!l && l.amount === h.amount && l.name === h.name; };
-    const spot = (id: string) => SPOTS.find((s) => s.id === id)?.name ?? id;
+    const leaders = new Map((d?.board ?? []).map((e) => [e.spotId, e.leader]));
+    const story = (h: HistoryItem): string | null => {
+      if (h.status === 'defaulted') return `Held for ${CONFIG.closeDays} days, paid ${CONFIG.defaultPercent}% media fee`;
+      if (h.status === 'settled') return `Held for ${CONFIG.closeDays} days, paid in full`;
+      if (h.status === 'outbid') return 'Held the spot until a higher bid came in';
+      return null;
+    };
+    const paid = (d?.history ?? []).filter((h) =>
+      LIVE_LIKE.includes(h.status) && (!spotFilter || h.spotId === spotFilter));
+
+    const live = (h: HistoryItem) => {
+      const l = leaders.get(h.spotId);
+      return !!l && l.amount === h.amount && l.name === h.name;
+    };
+    const spotName = (id: string) => SPOTS.find((s) => s.id === id)?.name ?? id;
     const day = (iso: string) => new Date(iso).toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
     const bidRow = (h: HistoryItem): Row => ({
       key: h.id, name: h.name, logoUrl: h.logoUrl, website: h.website,
-      big: money(h.amount), sub: `${spot(h.spotId)} · ${day(h.at)}`, live: live(h),
+      big: money(h.amount),          // what was the bid
+      sub: `${(h.spotId)} · ${day(h.at)}`,
+      note: story(h), // reference to the bid history 
+      live: live(h),
     });
 
-    // Per brand (history is newest first, so the first bid seen carries the latest logo).
+    // Per brand. History is newest first, so the first bid seen carries the latest logo.
     const byBrand = new Map<string, { name: string; logoUrl: string | null; website: string | null; bids: number; outbid: number; best: number }>();
     for (const h of paid) {
       const k = h.name.trim().toLowerCase();
       const b = byBrand.get(k) ?? { name: h.name, logoUrl: h.logoUrl, website: h.website, bids: 0, outbid: 0, best: 0 };
-      b.bids++; if (!live(h)) b.outbid++; b.best = Math.max(b.best, h.amount);
+      b.bids++;
+      if (!live(h)) b.outbid++;
+      b.best = Math.max(b.best, h.amount);
       byBrand.set(k, b);
     }
 
@@ -57,21 +86,24 @@ export default function Leaderboard() {
     if (tab === 'biggest') rows = [...paid].sort((a, b) => b.amount - a.amount).map(bidRow);
     else if (tab === 'newest') rows = [...paid].sort((a, b) => +new Date(b.at) - +new Date(a.at)).map(bidRow);
     else {
-      const most = tab === 'most', n = (v: number) => `${v} bid${v === 1 ? '' : 's'}`;
+      const most = tab === 'most';
+      const n = (v: number) => `${v} bid${v === 1 ? '' : 's'}`;
       rows = [...byBrand.entries()]
         .filter(([, b]) => most || b.outbid > 0)
         .sort(([, a], [, b]) => (most ? b.bids - a.bids : b.outbid - a.outbid) || b.best - a.best)
         .map(([k, b]) => ({
-          key: k, name: b.name, logoUrl: b.logoUrl, website: b.website, live: false,
-          big: most ? n(b.bids) : `${b.outbid}× outbid`, sub: most ? `best ${money(b.best)}` : `of ${n(b.bids)}`,
+          key: k, name: b.name, logoUrl: b.logoUrl, website: b.website, live: false, note: null,
+          big: most ? n(b.bids) : `${b.outbid}× outbid`,
+          sub: most ? `best ${money(b.best)}` : `of ${n(b.bids)}`,
         }));
     }
     return { rows, bids: paid.length, brands: byBrand.size };
-  }, [d, tab]);
+  }, [d, tab, spotFilter]);
 
-  const ranked = tab !== 'newest';                 // medals and a podium only make sense for rankings
+  const ranked = tab !== 'newest';
   const podium = ranked ? rows.slice(0, 3) : [];
   const rest = ranked ? rows.slice(3) : rows;
+  const spotLabel = spotFilter ? SPOTS.find((s) => s.id === spotFilter)?.name ?? spotFilter : null;
 
   return (
     <div className="lb-bg">
@@ -80,10 +112,17 @@ export default function Leaderboard() {
         <a href="/">← {COPY.name}</a>
         <div className="muted small" style={{ marginTop: 28 }}>Every paid bid, ever</div>
         <h1 style={{ marginTop: 8 }}>Leaderboard</h1>
+        {spotLabel && (
+          <p className="muted small" style={{ marginTop: 4 }}>
+            Filtered by {spotLabel} · <a href="/leaderboard">show all</a>
+          </p>
+        )}
         <p className="lead">{bids} paid bid{bids === 1 ? '' : 's'} from {brands} brand{brands === 1 ? '' : 's'}. Even if you get outbid, you stay visible here.</p>
 
         <div className="seg max-w-full overflow-x-auto" role="tablist" aria-label="Ranking" style={{ marginTop: 24 }}>
-          {TABS.map(([k, label]) => <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{label}</button>)}
+          {TABS.map(([k, label]) => (
+            <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{label}</button>
+          ))}
         </div>
         <p className="muted small" style={{ margin: 0 }}>{TABS.find(([k]) => k === tab)![2]}</p>
 
@@ -104,12 +143,17 @@ export default function Leaderboard() {
                 <div className={`font-bold tracking-tight ${i === 0 ? 'text-4xl' : 'text-3xl'}`}>{r.big}</div>
                 {r.live && <div className="text-[13px] font-medium text-[var(--ok)]">Still live</div>}
                 <div className="text-[13px] text-[var(--dg)]">{r.sub}</div>
+                {r.note && <div className="text-[13px] text-[var(--dg)]">{r.note}</div>}
               </GlassCard>
             ))}
           </div>
         )}
 
-        {podium.length > 0 && <p className="muted small" style={{ textAlign: 'center', margin: '24px 0 0' }}>Want to be on this board? <a href="/#spots" style={{ color: '#2563eb' }}>Take a spot →</a></p>}
+        {podium.length > 0 && (
+          <p className="muted small" style={{ textAlign: 'center', margin: '24px 0 0' }}>
+            Want to be on this board? <a href="/#spots" style={{ color: '#2563eb' }}>Take a spot →</a>
+          </p>
+        )}
 
         {rest.length > 0 && (<>
           {ranked && <div className="muted small" style={{ margin: '40px 0 12px', letterSpacing: '.06em', textTransform: 'uppercase', fontWeight: 600 }}>The rest of the field</div>}
@@ -125,6 +169,7 @@ export default function Leaderboard() {
                 <div className="min-w-0">
                   <div className="truncate text-[15px] font-medium"><BrandLink href={r.website}>{r.name}</BrandLink></div>
                   <div className="muted small truncate">{r.sub}</div>
+                  {r.note && <div className="muted small">{r.note}</div>}
                 </div>
                 <div className="text-right">
                   <div className="font-bold">{r.big}</div>

@@ -4,14 +4,21 @@ import { minBidFor } from '@/lib/pricing';
 import { db } from '@/lib/server/supabase';
 import { logoUrl } from '@/lib/server/auction';
 import type { BoardEntry, BoardResponse, HistoryItem, SpotState } from '@/lib/types';
+import { closeDueAuctions } from '@/lib/server/auction';
+import { CONFIG } from '@/lib/config';
+
+
+
 
 export const dynamic = 'force-dynamic';
 
 const LIVE = ['paid'];                                    // live bids set the price
 const HOLDERS = ['paid', 'won', 'settled'];               // who is shown on the spot
 const HISTORY = ['paid', 'outbid', 'won', 'settled', 'defaulted', 'review'];
+const SHOWN = ['paid', 'outbid', 'won', 'settled', 'defaulted'];
 
 export async function GET() {
+  try { await closeDueAuctions(); } catch (e) { console.error('lazy close', e); }
   const [bidsRes, auctionsRes] = await Promise.all([
     db().from('bids')
       .select('id, spot_id, display_name, amount, status, created_at, logo_path, website')
@@ -49,13 +56,18 @@ export async function GET() {
   const rvIds = new Set(SPOTS.filter(isRv).map((s) => s.id));
   const rvBoard = board.filter((e) => rvIds.has(e.spotId));
   const history: HistoryItem[] = rows.slice(0, 300).map((r) => {
-    const shown = HOLDERS.includes(r.status);
-    return {
-      id: r.id, spotId: r.spot_id, name: r.display_name, amount: r.amount, status: r.status, at: r.created_at,
-      logoUrl: shown && r.logo_path ? logoUrl(r.logo_path) : null,
-      website: shown ? r.website ?? null : null,
-    };
-  });
+  const shown = SHOWN.includes(r.status);
+  const charged =
+    r.status === 'settled' ? r.amount
+    : r.status === 'defaulted' ? Math.round((r.amount * CONFIG.defaultPercent) / 100)
+    : null;
+  return {
+    id: r.id, spotId: r.spot_id, name: r.display_name, amount: r.amount, status: r.status, at: r.created_at,
+    logoUrl: shown && r.logo_path ? logoUrl(r.logo_path) : null,
+    website: shown ? r.website ?? null : null,
+    charged,
+  };
+});
 
   const res: BoardResponse = {
     board, history,

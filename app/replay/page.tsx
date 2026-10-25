@@ -11,8 +11,10 @@ export default function Replay() {
   const [i, setI] = useState(0);
   const [play, setPlay] = useState(false);
   useEffect(() => { fetch('/api/board', { cache: 'no-store' }).then((r) => r.json()).then((x: BoardResponse) => { setD(x); setI(Math.max(0, x.history.filter((h) => h.status === 'paid').length - 1)); }).catch(() => {}); }, []);
-  const events = useMemo(() => (d?.history ?? []).filter((h) => h.status === 'paid').sort((a, b) => +new Date(a.at) - +new Date(b.at)), [d]);
-  useEffect(() => {
+  const events = useMemo(() => (d?.history ?? [])
+  .filter((h) => ['paid', 'won', 'settled', 'defaulted', 'outbid'].includes(h.status))
+  .sort((a, b) => +new Date(a.at) - +new Date(b.at)), [d]);
+    useEffect(() => {
     if (!play) return;
     const t = setInterval(() => setI((n) => { if (n >= events.length - 1) { setPlay(false); return n; } return n + 1; }), 700);
     return () => clearInterval(t);

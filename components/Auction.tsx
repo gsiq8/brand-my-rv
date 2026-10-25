@@ -10,10 +10,14 @@ import Countdown from './Countdown';
 
 const GROUPS = ['All spots', 'Sides', 'Rear', 'Roof'];
 
+
 function closing(e?: BoardEntry) {
+  const expired = !!e?.closesAt && new Date(e.closesAt) <= new Date();
+  const open = (!e?.state || e.state === 'open') && !expired;
+
   switch (e?.state) {
     case 'settled': return <span className="chip sold">Sold</span>;
-    case 'closed': return <span className="chip wait">Closed · awaiting wire</span>;
+    case 'closed': return <span className="text-[#EC2128] font-bold wait">Closed</span>;
     case 'defaulted': return <span className="chip wait">Unsold · fee charged</span>;
     default:
       return e?.closesAt
@@ -106,7 +110,14 @@ export default function Auction({ data, onBid }: { data: BoardResponse | null; o
 
                     <td className="r c-bid">
                       <b>{e?.leader ? money(e.leader.amount) : `from ${money(s.price)}`}</b>
-                      <div className="muted small c-qty">{e?.bids ?? 0} bid{e?.bids === 1 ? '' : 's'}</div>
+                      <div className="muted small c-qty">
+                        <a href={`/leaderboard?spot=${s.id}`}
+                          onClick={(ev) => ev.stopPropagation()}
+                          onKeyDown={(ev) => ev.stopPropagation()}
+                          style={{ color: 'inherit', textDecoration: 'underline' }}>
+                          {e?.bids ?? 0} bid{e?.bids === 1 ? '' : 's'}
+                        </a>
+                      </div>
                       <div className="c-closes-m small">{closing(e)}</div>
                     </td>
                   </tr>

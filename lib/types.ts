@@ -8,7 +8,11 @@ export type BoardEntry = {
   closesAt: string | null;
   leader: { name: string; amount: number; logoUrl: string | null; website: string | null } | null;
 };
-export type HistoryItem = { id: string; spotId: string; name: string; amount: number; status: string; at: string; logoUrl: string | null; website: string | null };
+export type HistoryItem = {
+  id: string; spotId: string; name: string; amount: number; status: string; at: string;
+  logoUrl: string | null; website: string | null;
+  charged: number | null;   // whole units actually collected; null if nothing was collected
+};
 export type BoardResponse = {
   board: BoardEntry[];
   stats: { raised: number; bids: number; taken: number; total: number };
