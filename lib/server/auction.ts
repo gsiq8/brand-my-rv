@@ -173,21 +173,22 @@ async function goLive(b: BidRow) {
 
   const { data: previous } = await db().from('bids').select(BID)
     .eq('spot_id', b.spot_id).eq('status', 'paid').neq('id', b.id);
-  for (const p of (previous ?? []) as unknown as BidRow[]) await outbid(p);
+  for (const p of (previous ?? []) as unknown as BidRow[]) await outbid(p, b.amount);
 
   if (isTimed(b.spot_id)) await startTimer(b.spot_id);             // fallback, normally already running
   await Promise.allSettled([notifyPaid(b), tell(b, `Your logo is live on ${spotName(b.spot_id)} at ${money(b.amount)}.`)]);
 }
 
-async function outbid(p: BidRow) {
+async function outbid(p: BidRow, newTop: number) {
   await db().from('bids').update({ status: 'outbid' }).eq('id', p.id).eq('status', 'paid');
   if (isTimed(p.spot_id)) {
     try { await releaseMoney(p.payment_intent_id); }
     catch (e) { await notifyAdmin('Hold release failed', `${p.display_name} on ${spotName(p.spot_id)}: ${String(e)}`); }
   }
+  const minToWin = newTop + CONFIG.bidStep;
   await Promise.allSettled([
-    track(p, 'Bid Outbid'),
-    tell(p, `You were outbid on ${spotName(p.spot_id)}. ${isTimed(p.spot_id) ? 'Your card hold is released. ' : ''}Bid again at ${SITE}.`),
+    track(p, 'Bid Outbid', { top_bid: newTop, min_to_win_back: minToWin }),
+    tell(p, `You were outbid on ${spotName(p.spot_id)}. The top bid is now ${money(newTop)}. Bid at least ${money(minToWin)} to win back your spot at ${SITE}.${isTimed(p.spot_id) ? ' Your card hold is released.' : ''}`),
   ]);
 }
 
