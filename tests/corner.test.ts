@@ -3,7 +3,7 @@ import { cornerHolders } from '@/lib/corner';
 import type { HistoryItem } from '@/lib/types';
 
 const item = (id: string, status: string, at: string): HistoryItem =>
-  ({ id, spotId: 'corner', name: id, amount: 100, status, at, logoUrl: null, website: null });
+  ({ id, spotId: 'corner', name: id, amount: 100, status, at, logoUrl: null, website: null, charged: null  });
 
 describe('cornerHolders', () => {
   const items = [
