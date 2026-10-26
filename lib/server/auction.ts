@@ -173,13 +173,13 @@ async function goLive(b: BidRow) {
 
   const { data: previous } = await db().from('bids').select(BID)
     .eq('spot_id', b.spot_id).eq('status', 'paid').neq('id', b.id);
-  for (const p of (previous ?? []) as unknown as BidRow[]) await outbid(p, b.amount);
+  for (const p of (previous ?? []) as unknown as BidRow[]) await outbid(p, b.amount, b.display_name);
 
   if (isTimed(b.spot_id)) await startTimer(b.spot_id);             // fallback, normally already running
   await Promise.allSettled([notifyPaid(b), tell(b, `Your logo is live on ${spotName(b.spot_id)} at ${money(b.amount)}.`)]);
 }
 
-async function outbid(p: BidRow, newTop: number) {
+async function outbid(p: BidRow, newTop: number, outbidder: string) {
   await db().from('bids').update({ status: 'outbid' }).eq('id', p.id).eq('status', 'paid');
   if (isTimed(p.spot_id)) {
     try { await releaseMoney(p.payment_intent_id); }
@@ -187,8 +187,8 @@ async function outbid(p: BidRow, newTop: number) {
   }
   const minToWin = newTop + CONFIG.bidStep;
   await Promise.allSettled([
-    track(p, 'Bid Outbid', { top_bid: newTop, min_to_win_back: minToWin }),
-    tell(p, `You were outbid on ${spotName(p.spot_id)}. The top bid is now ${money(newTop)}. Bid at least ${money(minToWin)} to win back your spot at ${SITE}.${isTimed(p.spot_id) ? ' Your card hold is released.' : ''}`),
+    track(p, 'Bid Outbid', { outbidder: outbidder, top_bid: newTop, min_to_win_back: minToWin }),
+    tell(p, `You were outbid by ${outbidder} on ${spotName(p.spot_id)}. The top bid is now ${money(newTop)}. Bid at least ${money(minToWin)} to win back your spot at ${SITE}.${isTimed(p.spot_id) ? ' Your card hold is released.' : ''}`),
   ]);
 }
 
@@ -265,7 +265,7 @@ export async function closeDueAuctions() {
 
     await Promise.allSettled([
       track(w, 'Bid Won'),
-      tell(w, `You won ${spotName(spot_id)} at ${money(w.amount)}. The contract and invoice are on the way. Sign and wire within ${CONFIG.wireHours} hours.`),
+      tell(w, `You won ${spotName(spot_id)} at ${money(w.amount)}! We will send you the contract and invoice by email. Sign and wire within ${CONFIG.wireHours} hours.`),
       notifyAdmin('Spot closed', `${spotName(spot_id)}: ${w.display_name} at ${money(w.amount)}. Wire due ${wireBy}.`),
     ]);
   }
