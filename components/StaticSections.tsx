@@ -46,14 +46,15 @@ export function Specs() {
 
 export function Footer() {
   return (
-    <footer className="ftr">
-      <div className="wrap">
+    <footer className="ftr dark-grey">
+      <div className="wrap grid auto-cols-max grid-flow-col justify-between">
         <nav>
-          <a href="#spots">The auction</a><a href="/leaderboard">Leaderboard</a><a href="/replay">Replay</a><a href="#how">How it works</a>
-          <a href="#corner">The strip</a><a href="#specs">The motorhome</a><a href="#faq">FAQ</a>
+          <span className="text-white">Copyright © 2026 Brand My RV.</span>
         </nav>
-        <nav><a href="/privacy">Privacy</a><a href="/terms">Terms</a></nav>
-        {/* <p className="muted small">{COPY.disclaimer}</p> */}
+        <nav className="footer-links">
+          <a href="/privacy">Privacy</a>
+          <a href="/terms">Terms</a>
+        </nav>
       </div>
     </footer>
   );

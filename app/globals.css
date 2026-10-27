@@ -410,6 +410,9 @@ p{font-size: 13px}
 .host p{color:var(--mu)}.lnk{margin-right:14px;margin-top: 10px; font-weight:500}
 .ftr{border-top:1px solid var(--bd);padding:28px 0 40px}
 .ftr nav{display:flex;gap:18px;flex-wrap:wrap;font-size:14px;margin-bottom:12px}.ftr a{text-decoration:none;color:var(--mu)}.ftr a:hover{color:var(--tx)}
+.ftr.dark-grey { color: #fff; }
+.ftr.dark-grey a { color: rgba(255, 255, 255, 0.7); text-decoration: none; }
+.ftr.dark-grey a:hover { color: #fff; }
 .card{background:#fff;border-radius:24px;overflow:hidden;max-width:900px}
 .card-g{background:var(--mt);border-radius:24px;overflow:hidden;max-width:900px;}
 .card-head{display:flex;justify-content:space-between;gap:16px;padding:20px 24px;font-size:22px;border-bottom:1px solid var(--bd)}

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { COPY } from '@/lib/site';
 
-export default function Header({ onGetSpot }: { onGetSpot: () => void }) {
+export default function Header({ onGetSpot }: { onGetSpot?: () => void }) {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
 
@@ -27,8 +27,7 @@ export default function Header({ onGetSpot }: { onGetSpot: () => void }) {
            <a href="/replay"onClick={close}>Replay</a> 
           <a href="#corner"onClick={close}>The strip</a>
         </nav>
-        <button className="btn dark" onClick={onGetSpot}>Get a spot</button>
-
+        {onGetSpot && <button className="btn dark" onClick={onGetSpot}>Get a spot</button>}
         
       </div>
     </header>

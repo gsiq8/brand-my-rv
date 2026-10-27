@@ -1,8 +1,13 @@
 import Legal, { CONTACT } from '@/components/Legal';
+import Header from '@/components/Header';
 
 export default function Page() {
   return (
-    <main className='max-w-3xl mx-auto py-14 px-6'>
+  
+    <>
+    <Header />
+  
+    <main className='max-w-3xl mx-auto px-6'>
       <Legal title="Privacy Policy" short="No advertising cookies and no cross-site tracking. To bid you give me your contact and tax details so I can invoice you, and I never see your card number. Only your brand name, logo, website and bid amount are public, and only after I approve your logo.">
         <section className='mb-8'>
           <h4 className='text-xl font-semibold tracking-[-0.01em]'>Who I am</h4>
@@ -79,5 +84,6 @@ export default function Page() {
         </section>
       </Legal>
     </main>
+    </>
   );
 }
