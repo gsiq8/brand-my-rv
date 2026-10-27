@@ -10,6 +10,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
     "@tailwindcss/postcss": "^4.3.3",
+    "@vercel/speed-insights": "^2.0.0",
     "eslint-config-next": "^16.4.3",
     "liquid-glass-react": "^1.1.1",
     "lucide-react": "^1.56.0",
@@ -38,5 +39,8 @@
     "typescript": "^5.5.0",
     "vitest": "^4.1.12"
   },
-  "browserslist": ["ios >= 15", "safari >= 15"]
+  "browserslist": [
+    "ios >= 15",
+    "safari >= 15"
+  ]
 }
