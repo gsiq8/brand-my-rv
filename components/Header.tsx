@@ -25,7 +25,7 @@ export default function Header({ onGetSpot }: { onGetSpot?: () => void }) {
           <a href="/#spots"onClick={close}>The auction</a>
           <a href="/leaderboard"onClick={close}>Leaderboard</a>
            <a href="/replay"onClick={close}>Replay</a> 
-          <a href="#corner"onClick={close}>The strip</a>
+          <a href="/#corner"onClick={close}>The strip</a>
         </nav>
         {onGetSpot && <button className="btn dark" onClick={onGetSpot}>Get a spot</button>}
         

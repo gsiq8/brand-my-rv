@@ -5,27 +5,76 @@ import { cornerHolders, heldFor } from '@/lib/corner';
 import { money } from '@/lib/format';
 import type { BoardEntry, HistoryItem } from '@/lib/types';
 import BrandLink from './BrandLink';
+import Glass from './glass';
+
+type Holder = ReturnType<typeof cornerHolders>[number];
+
+function Row({ h }: { h: Holder }) {
+  return (
+    <li className="cr-row">
+      {h.item.logoUrl
+        ? <BrandLink href={h.item.website}><img src={h.item.logoUrl} alt="" /></BrandLink>
+        : <span className="av">{h.item.name.slice(0, 1).toUpperCase()}</span>}
+      <BrandLink href={h.item.website}><b>{h.item.name}</b></BrandLink>
+      <span className="amt">{money(h.item.amount)}</span>
+      {h.current
+        ? <span className="chip sold">at the top now</span>
+        : <span className="muted small">held {heldFor(h.heldMs)}</span>}
+    </li>
+  );
+}
 
 export default function Corner({ entry, items, onBid }: { entry?: BoardEntry; items: HistoryItem[]; onBid: () => void }) {
   const spot = SPOTS.find((s) => s.id === 'corner');
   if (!spot) return null;
+
   const holders = cornerHolders(items);
+  // Assumes the current holder is flagged; falls back to the first entry.
+  const winner = holders.find((h) => h.current) ?? holders[0];
+  const past = holders.filter((h) => h !== winner);
+
   return (
     <section className="wrap faq-sec" id="corner">
       <h2>The strip</h2>
       <p className="lead">{COPY.cornerLead}</p>
-      <ul className="corner-list">
-        {holders.length === 0 && <li className="muted">Nobody yet – be the first.</li>}
-        {holders.map((h) => (
-          <li key={h.item.id}>
-            {h.item.logoUrl
-              ? <BrandLink href={h.item.website}><img src={h.item.logoUrl} alt="" /></BrandLink>
-              : <span className="av">{h.item.name.slice(0, 1).toUpperCase()}</span>}
-            <BrandLink href={h.item.website}><b>{h.item.name}</b></BrandLink><span className="amt">{money(h.item.amount)}</span>
-            {h.current ? <span className="chip sold">at the top now</span> : <span className="muted small">held {heldFor(h.heldMs)}</span>}
-          </li>
-        ))}
-      </ul>
+
+      <div className="cr-stage">
+        <Glass
+          className="cr-glass"
+         
+          displacementScale={70}
+          blurAmount={0.02}
+          saturation={140}
+          aberrationIntensity={2}
+          elasticity={0}
+          cornerRadius={14}
+          padding="0"
+          style={{ position: 'absolute', top: '50%', left: '50%' }}
+        >
+          <div className="cr-card">
+            {!winner && (
+              <p className="muted" style={{ margin: 0, padding: '0 20px', height: 'var(--cr-row)', display: 'flex', alignItems: 'center' }}>
+                Nobody yet – be the first.
+              </p>
+            )}
+
+            {winner && (
+              <div className="cr-viewport" style={{ ['--cr-n' as string]: Math.min(past.length, 3) }}>
+                {/* Winner floats over the list, like Finder's window controls */}
+                <ul className="cr-winner"><Row h={winner} /></ul>
+
+                {/* Static blur bands: always on, same strength wherever the list is scrolled */}
+                <span className="cr-fade cr-fade-top" aria-hidden />
+                <div className="cr-scroll" tabIndex={0} role="region" aria-label="Previous holders">
+                  <ul>{past.map((h) => <Row key={h.item.id} h={h} />)}</ul>
+                </div>
+                <span className="cr-fade cr-fade-bottom" aria-hidden />
+              </div>
+            )}
+          </div>
+        </Glass>
+      </div>
+
       <button className="btn pri" onClick={onBid}>Take the strip — {money(entry?.min ?? spot.price)}</button>
       <p className="muted small" style={{ marginTop: 10 }}>{COPY.cornerNote}</p>
     </section>

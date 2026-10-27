@@ -1,2 +1,9 @@
 /** @type {import('next').NextConfig} */
-export default { reactStrictMode: true };
+const nextConfig = {
+  reactStrictMode: true,
+  images: {
+    qualities: [50,75]
+  },
+};
+
+export default nextConfig;

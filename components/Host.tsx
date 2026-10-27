@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react';
 import LiquidGlass from '@/components/glass';
+import Image from 'next/image'
 import { COPY } from '@/lib/site';
 
 export default function Host() {
@@ -20,7 +21,7 @@ export default function Host() {
 
   return (
     <section className="wrap faq-sec">
-      <div className="glass-slot" style={{ height }}>
+      <div className="glass-slot mb-8" style={{ height }}>
         <LiquidGlass
          padding="0"
          cornerRadius={14}
@@ -31,7 +32,17 @@ export default function Host() {
          style={{ position: 'absolute', top: '50%', left: '50%' }}
         >
           <div ref={inner} className="host host-glass">
-            <span className="av big">{h.name.replace('[', '').slice(0, 1).toUpperCase()}</span>
+            <div className="av big relative overflow-hidden"> 
+              <Image 
+                src="/image.png"
+                fill
+                sizes="64px"
+                quality={50}
+                loading="lazy"
+                alt="profile"
+                className="object-cover"
+              />
+            </div>
             <div>
               <h3>Hey, I’m {h.name} 👋</h3>
               <div className="faq p">

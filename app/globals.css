@@ -19,6 +19,10 @@ p{font-size: 13px}
   h2{font-size: 28px;}
   h3{font-size: 14px;} 
   p{font-size: 10px;}
+  .p ul {
+    font-size: 10px !important;
+    padding: 0px 0px 0px 20px !important; 
+  }
 }
 .p ul {
   list-style-type: disc !important; /* Força a bolinha (bullet) */
@@ -538,6 +542,120 @@ p{font-size: 13px}
   .corner-list li.a > img {max-width: 80px;}
   .brand-link, .amt{font-size: 14px;}
   .chip.chip.sold{font-size: 9px}
+}
+
+/* Append to your global stylesheet */
+.cr-stage {
+  --cr-row: 56px;
+  --cr-winner: calc(var(--cr-row) * 2);     /* winner row is twice a normal row */
+  /* Card width = the section's content box (.wrap.faq-sec: max-width var(--qna), 26px side padding).
+     Corner.tsx overrides this with the measured px width; this CSS value is the fallback and gives
+     the same result without JS. The Glass shrink-wraps, so a % width would collapse. */
+  --cr-fallback: min(calc(var(--qna) - 52px), calc(100vw - 52px));
+  position: relative;
+  height: calc(var(--cr-winner) + var(--cr-row) * 3 + 40px);   /* winner row + 3 visible rows */
+  margin: 24px 0;
+}
+.cr-card {
+  width: var(--cr-width, var(--cr-fallback));
+  min-width: var(--cr-width, var(--cr-fallback));   /* the Glass is a flex box: don't let it shrink the card */
+  flex: none;
+  padding: 0;
+}
+.cr-card ul { list-style: none; margin: 0; padding: 0; }
+
+/* Everything inside the glass: black, one size, no shadows */
+.cr-card, .cr-card *:not(.chip) { color: #000 !important; }
+.cr-card, .cr-card * { text-shadow: none !important; }
+/* The chip keeps its own class styles (.chip.sold: green pill) */
+.cr-card .cr-row,
+.cr-card .cr-row :not(.chip) { font-size: 15px; line-height: 1.2; }
+.cr-card .muted { opacity: .6; }
+
+/* Soft shadow, no edge highlight borders: the card blends into the page */
+.cr-glass,
+.cr-glass .glass { box-shadow: 0 4px 20px rgba(0,0,0,.05) !important; }
+.cr-glass span[style*="mix-blend-mode"] { display: none !important; }
+
+.cr-row {
+  display: flex; align-items: center; gap: 12px;
+  height: var(--cr-row); padding: 0 20px;
+}
+.cr-row img, .cr-row .av { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex: none; }
+.cr-row .amt { margin-left: auto; }
+
+/* Winner row: taller, bigger type and logo */
+.cr-winner .cr-row { height: var(--cr-winner); padding: 0 24px; gap: 16px; }
+.cr-winner .cr-row img, .cr-winner .cr-row .av { width: 56px; height: 56px; }
+.cr-card .cr-winner .cr-row,
+.cr-card .cr-winner .cr-row :not(.chip) { font-size: 22px; line-height: 1.2; }
+
+/* One viewport: winner row + up to 3 past rows. No overflow clipping here, so the
+   blur bands can run flush to the card's top and bottom edges. */
+.cr-viewport {
+  position: relative;
+  height: calc(var(--cr-winner) + var(--cr-row) * var(--cr-n, 3));
+}
+
+/* Winner: no container, no border. Floats above the list. */
+.cr-winner { position: absolute; top: 0; left: 0; right: 0; z-index: 3; }
+
+.cr-scroll {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-snap-type: y proximity;
+  scroll-padding-top: var(--cr-winner);
+  padding-top: var(--cr-winner);       /* first past bid starts below the winner */
+  padding-bottom: var(--cr-row);    /* last bid can scroll up out of the bottom blur */
+  box-sizing: border-box;
+  scrollbar-width: none;
+}
+.cr-scroll::-webkit-scrollbar { display: none; }
+.cr-scroll .cr-row { scroll-snap-align: start; }
+.cr-scroll:focus-visible { outline: none; }
+
+/* Static blur bands (constant strength, not tied to scroll position) */
+.cr-fade {
+  position: absolute; left: 0; right: 0;
+  pointer-events: none; z-index: 2;
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+}
+.cr-fade-top {
+  top: 0; height: calc(var(--cr-winner) + var(--cr-row) * 0.35);
+  -webkit-mask-image: linear-gradient(to bottom, #000 85%, transparent);
+          mask-image: linear-gradient(to bottom, #000 85%, transparent);
+}
+.cr-fade-bottom {
+  bottom: 0; height: calc(var(--cr-row) * 1.5);
+  -webkit-mask-image: linear-gradient(to top, #000 30%, transparent);
+          mask-image: linear-gradient(to top, #000 30%, transparent);
+}
+
+/* Winner row layout (all screen sizes): chip on its own line, then logo / name / price */
+.cr-winner .cr-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "chip chip chip" "logo name amt";
+  align-content: center;
+  row-gap: 6px; column-gap: 16px;
+}
+.cr-winner .cr-row > :nth-child(1) { grid-area: logo; }
+.cr-winner .cr-row > :nth-child(2) { grid-area: name; min-width: 0; }
+.cr-winner .cr-row .amt  { grid-area: amt; margin-left: 0; justify-self: end; }
+.cr-winner .cr-row .chip,
+.cr-winner .cr-row .muted { grid-area: chip; justify-self: center; }
+
+/* Narrow screens: slightly smaller logo and type */
+@media (max-width: 600px) {
+  .cr-winner .cr-row { padding: 0 20px; column-gap: 12px; }
+  .cr-winner .cr-row img, .cr-winner .cr-row .av { width: 48px; height: 48px; }
+  .cr-card .cr-winner .cr-row b { font-size: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cr-card .cr-winner .cr-row .amt { font-size: 18px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cr-scroll { scroll-behavior: auto; }
 }
 
 /* Hero: staggered entrance on page load */

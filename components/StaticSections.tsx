@@ -1,5 +1,4 @@
 import { COPY, FAQ, SPECS, STEPS } from '@/lib/site';
-import { Plus } from 'lucide-react';
 
 export function HowItWorks() {
   return (

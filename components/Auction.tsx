@@ -8,7 +8,7 @@ import type { BoardEntry, BoardResponse } from '@/lib/types';
 import LeaderTable from './LeaderTable';
 import Countdown from './Countdown';
 
-const GROUPS = ['All spots', 'Sides', 'Rear', 'Roof'];
+const GROUPS = ['All spots', 'Front', 'Rear', 'Roof'];
 
 
 function closing(e?: BoardEntry) {
