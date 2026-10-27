@@ -109,7 +109,7 @@ p{font-size: 13px}
 .seg button.on{background:#fff;color:var(--tx);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .seg-r{display:inline-flex;gap:2px;background:var(--pill);border-radius:999px;padding:3px;margin:14px 0}
 .seg-r button{font:inherit;font-size:11px;align-self: center;border:0;background:transparent;border-radius:999px;padding:6px 14px;cursor:pointer;color:var(--dg)}
-.seg-r button.on{background:#fff;color:var(--tx);align-self:center !important;height:stretch; text-box:auto;box-shadow:0 2px 3px rgba(0,0,0,.12)}
+.seg-r button.on{background:#fff;color:var(--tx);align-self:center !important; text-box:auto;box-shadow:0 2px 3px rgba(0,0,0,.12)}
 
 .stage{position:relative;height:clamp(360px,62vh,640px);border-radius:22px;overflow:hidden;background:#dfe7ef;border:1px solid var(--bd)}
 .load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mu)}
