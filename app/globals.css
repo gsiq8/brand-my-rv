@@ -177,6 +177,7 @@ p{font-size: 13px}
 }
 .podium-slider::-webkit-scrollbar { display: none; }
 .podium-slide { flex: 0 0 82%; max-width: 320px; scroll-snap-align: center; }
+.lb-bg { overflow-x: clip; }
 @media (min-width: 761px) {
   .podium-slider { display: none; }  /* desktop keeps .podium */
 }

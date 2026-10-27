@@ -14,6 +14,19 @@ export default function Replay() {
   const [i, setI] = useState(0);
   const [play, setPlay] = useState(false);
   const [speed, setSpeed] = useState<(typeof SPEEDS)[number]>(45);
+  const [compact, setCompact] = useState(false);
+
+  useEffect(() => {
+    let last = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (y < last - 4) setCompact(true);   // rolando para cima: esconde
+      else if (y > last + 4) setCompact(false);
+      last = y;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
   
 
   useEffect(() => {
@@ -101,7 +114,7 @@ export default function Replay() {
       </>)}
     </main>
     {/* play container*/}
-          <div className='sticky bottom-0 z-20 w-full -mx-6 flex flex-col gap-3 border-top-1 border-[var(--mu)]/60 bg-[#f5f5f7]/95 px-10 py-3 backdrop-blur-[8px] justify-self-center '>
+          <div className={`sticky bottom-0 z-20 w-full -mx-6 flex flex-col gap-3 border-top-1 border-[var(--mu)]/60 bg-[#f5f5f7]/95 px-10 py-3 backdrop-blur-[8px] justify-self-center transition-transform duration-300 ${compact ? 'max-[760px]:translate-y-full' : ''}`}>
             <div className="row " style={{ marginTop: 12, gap: 12 }}>
               <input type="range" min={0} max={last} value={i}
                 onChange={(e) => { setPlay(false); setI(+e.target.value); }}
