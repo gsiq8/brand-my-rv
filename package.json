@@ -37,5 +37,6 @@
     "@types/three": "^0.170.0",
     "typescript": "^5.5.0",
     "vitest": "^4.1.12"
-  }
+  },
+  "browserslist": ["ios >= 15", "safari >= 15"]
 }
