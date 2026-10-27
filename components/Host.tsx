@@ -36,8 +36,8 @@ export default function Host() {
               <Image 
                 src="/image.png"
                 fill
-                sizes="64px"
-                quality={50}
+                sizes="84px"
+                quality={75}               
                 loading="lazy"
                 alt="profile"
                 className="object-cover"

@@ -41,6 +41,11 @@
   },
   "browserslist": [
     "ios >= 15",
-    "safari >= 15"
-  ]
+    "safari >= 15",   
+    "chrome >= 111",
+    "edge >= 111",
+    "firefox >= 115",
+    "safari >= 16.4",
+    "ios_saf >= 16.4"
+  ]  
 }
