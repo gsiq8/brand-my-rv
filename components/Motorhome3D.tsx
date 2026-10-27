@@ -6,17 +6,20 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { sizeInfo, RV_SPOTS as SPOTS, type RvSpot as SpotDef } from '@/lib/spots';
 import { CONFIG } from '@/lib/config';
 import { skyFor } from '@/lib/sky';
+import AmbientSound from './AmbientSound';
 
 export type ViewName = 'front' | 'back' | 'left' | 'right' | 'top' | '3D';
 export type Props = {
-  logos: Record<string, string | null>;          // public logo URL of the leading paid bid, per spot
-  mins: Record<string, number>;                  // minimum bid per spot (for the placeholder text)
+  logos: Record<string, string | null>;
+  mins: Record<string, number>;
   selected: string | null;
-  draft: { spotId: string; dataUrl: string } | null; // unsent logo preview
-  view: { name: ViewName; n: number } | null;    // change `n` to re-trigger a camera move
-  mode: 'auction' | 'final';                    // 'final' hides amounts, outlines and empty spots
-  amounts: Record<string, number | null>;       // current top bid per spot
+  draft: { spotId: string; dataUrl: string } | null;
+  view: { name: ViewName; n: number } | null;
+  mode: 'auction' | 'final';
+  amounts: Record<string, number | null>;
   onSelect: (id: string) => void;
+  readOnly?: boolean;          // replay: no clicks, no hover cursor, no bid outlines
+  onAnimationDone?: () => void; // optional hook when a camera move finishes
 };
 type Api = { update: (p: Props) => void };
 
@@ -54,7 +57,9 @@ export default function Motorhome3D(props: Props) {
     const scene = new THREE.Scene();
     scene.fog = new THREE.Fog(0xcfdce8, 12, 75);
     const cam = new THREE.PerspectiveCamera(38, 1, 0.05, 120);
+    const dist = (d: number) => Math.max(d, d / (cam.aspect || 1));
     const controls = new OrbitControls(cam, dom);
+    controls.enabled = !latest.current.readOnly;
     controls.target.copy(TARGET); controls.enableDamping = true; controls.enablePan = false;
     controls.minDistance = 1.2; controls.maxDistance = 7; controls.minPolarAngle = 0.04; controls.maxPolarAngle = 1.52;
     const place0 = VIEWS['3D'];
@@ -239,7 +244,9 @@ const V = (a: number[]) => new THREE.Vector3(a[0], a[1], a[2]);
     const cur = () => { const d = cam.position.clone().sub(TARGET), r = d.length(); return [Math.atan2(d.z, d.x), Math.acos(clamp(d.y / r, -1, 1)), r]; };
     const go = (n: ViewName) => {
       const f = cur(), t = [...VIEWS[n]], d = t[0] - f[0];
-      t[0] = f[0] + Math.atan2(Math.sin(d), Math.cos(d)); anim = { t: 0, from: f, to: t };
+      t[0] = f[0] + Math.atan2(Math.sin(d), Math.cos(d));
+      t[2] = dist(t[2]);
+      anim = { t: 0, from: f, to: t };
     };
     controls.addEventListener('start', () => { anim = null; });
 
@@ -250,13 +257,14 @@ const V = (a: number[]) => new THREE.Vector3(a[0], a[1], a[2]);
       ray.setFromCamera(ndc, cam); const h = ray.intersectObjects(meshes)[0]; return h ? (h.object.userData.id as string) : null;
     };
     let down: [number, number] | null = null;
-    dom.addEventListener('pointerdown', (e) => { down = [e.clientX, e.clientY]; });
-    dom.addEventListener('pointerup', (e) => {
-      if (!down) return; const moved = Math.hypot(e.clientX - down[0], e.clientY - down[1]); down = null;
-      if (moved > 5) return; const id = hit(e); if (id) latest.current.onSelect(id);
-    });
-    dom.addEventListener('pointermove', (e) => { if (!down) dom.style.cursor = hit(e) ? 'pointer' : 'grab'; });
-
+    if (!latest.current.readOnly) {
+      dom.addEventListener('pointerdown', (e) => { down = [e.clientX, e.clientY]; });
+      dom.addEventListener('pointerup', (e) => {
+        if (!down) return; const moved = Math.hypot(e.clientX - down[0], e.clientY - down[1]); down = null;
+        if (moved > 5) return; const id = hit(e); if (id) latest.current.onSelect(id);
+      });
+      dom.addEventListener('pointermove', (e) => { if (!down) dom.style.cursor = hit(e) ? 'pointer' : 'grab'; });
+    }
     // ---- sync React props -> scene ----
     api.current = {
       update: (p) => {
@@ -275,8 +283,16 @@ const V = (a: number[]) => new THREE.Vector3(a[0], a[1], a[2]);
     api.current.update(latest.current);
 
     // ---- loop & resize ----
-    const resize = () => { const w = el.clientWidth || 1, h = el.clientHeight || 1; renderer.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); };
+    const resize = () => { 
+      const w = el.clientWidth || 1, h = el.clientHeight || 1;
+       renderer.setSize(w, h, false); 
+       cam.aspect = w / h; 
+       cam.updateProjectionMatrix(); 
+      };
     const ro = new ResizeObserver(resize); ro.observe(el); resize();
+    const p0 = dist(place0[2]);
+      cam.position.set(p0 * Math.sin(place0[1]) * Math.cos(place0[0]), TARGET.y + p0 * Math.cos(place0[1]), p0 * Math.sin(place0[1]) * Math.sin(place0[0]));
+      controls.update();      
     const clock = new THREE.Clock();
     renderer.setAnimationLoop(() => {
       const dt = clock.getDelta();
@@ -285,7 +301,7 @@ const V = (a: number[]) => new THREE.Vector3(a[0], a[1], a[2]);
         const k = 1 - Math.pow(1 - anim.t, 3), [a, b] = [anim.from, anim.to];
         const th = a[0] + (b[0] - a[0]) * k, ph = a[1] + (b[1] - a[1]) * k, r = a[2] + (b[2] - a[2]) * k;
         cam.position.set(TARGET.x + r * Math.sin(ph) * Math.cos(th), TARGET.y + r * Math.cos(ph), TARGET.z + r * Math.sin(ph) * Math.sin(th));
-        if (anim.t >= 1) anim = null;
+        if (anim.t >= 1) { anim = null; latest.current.onAnimationDone?.(); }
       }
       controls.update(); renderer.render(scene, cam);
     });
@@ -297,5 +313,10 @@ const V = (a: number[]) => new THREE.Vector3(a[0], a[1], a[2]);
   }, []);
 
   useEffect(() => { api.current?.update(props); });
-  return <div ref={box} style={{ position: 'absolute', inset: 0 }} />;
+  return (
+    <>
+      <div ref={box} style={{ position: 'absolute', inset: 0 }} />
+      { <AmbientSound targetRef={box} />}
+    </>
+  );
 }

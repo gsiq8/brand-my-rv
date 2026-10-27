@@ -51,7 +51,7 @@ export default function Leaderboard() {
     const story = (h: HistoryItem): string | null => {
       if (h.status === 'defaulted') return `Held for ${CONFIG.closeDays} days, paid ${CONFIG.defaultPercent}% media fee`;
       if (h.status === 'settled') return `Held for ${CONFIG.closeDays} days, paid in full`;
-      if (h.status === 'outbid') return 'Held the spot until a higher bid came in';
+      if (h.status === 'outbid') return 'Held until a higher bid came in';
       return null;
     };
     const paid = (d?.history ?? []).filter((h) =>
@@ -105,6 +105,22 @@ export default function Leaderboard() {
   const rest = ranked ? rows.slice(3) : rows;
   const spotLabel = spotFilter ? SPOTS.find((s) => s.id === spotFilter)?.name ?? spotFilter : null;
 
+  const podiumCard = (r: Row, rank: number) => (
+    <>
+      <Medal rank={rank} size={rank === 1 ? 40 : 34} className="absolute right-4 top-4" />
+      <div className="flex h-12 items-center">
+        {r.logoUrl
+          ? <BrandLink href={r.website}><img src={r.logoUrl} alt={r.name} className="max-h-12 max-w-[140px] object-contain" /></BrandLink>
+          : <span className="av">{r.name.slice(0, 1).toUpperCase()}</span>}
+      </div>
+      <div className="mt-4 text-[17px] font-medium"><BrandLink href={r.website}>{r.name}</BrandLink></div>
+      <div className={`font-bold tracking-tight ${rank === 1 ? 'text-4xl' : 'text-3xl'}`}>{r.big}</div>
+      {r.live && <div className="text-[13px] font-medium text-[var(--ok)]">Still live</div>}
+      <div className="text-[13px] text-[var(--dg)]">{r.sub}</div>
+      {r.note && <div className="text-[13px] text-[var(--dg)]">{r.note}</div>}
+    </>
+  );
+
   return (
     <div className="lb-bg">
       {hasCorner && <div className="strip-spacer" aria-hidden="true" />}
@@ -129,25 +145,26 @@ export default function Leaderboard() {
         {!d && <p className="muted" style={{ marginTop: 40 }}>Loading…</p>}
         {d && rows.length === 0 && <p className="muted" style={{ marginTop: 40 }}>No paid bids yet.</p>}
 
-        {podium.length > 0 && (
+        
+        {podium.length > 0 && (<>
           <div className="podium">
             {podium.map((r, i) => (
               <GlassCard key={r.key} className={`p${i + 1}`}>
-                <Medal rank={i + 1} size={i === 0 ? 40 : 34} className="absolute right-4 top-4" />
-                <div className="flex h-12 items-center">
-                  {r.logoUrl
-                    ? <BrandLink href={r.website}><img src={r.logoUrl} alt={r.name} className="max-h-12 max-w-[140px] object-contain" /></BrandLink>
-                    : <span className="av">{r.name.slice(0, 1).toUpperCase()}</span>}
-                </div>
-                <div className="mt-4 text-[17px] font-medium"><BrandLink href={r.website}>{r.name}</BrandLink></div>
-                <div className={`font-bold tracking-tight ${i === 0 ? 'text-4xl' : 'text-3xl'}`}>{r.big}</div>
-                {r.live && <div className="text-[13px] font-medium text-[var(--ok)]">Still live</div>}
-                <div className="text-[13px] text-[var(--dg)]">{r.sub}</div>
-                {r.note && <div className="text-[13px] text-[var(--dg)]">{r.note}</div>}
+                {podiumCard(r, i + 1)}
               </GlassCard>
             ))}
           </div>
-        )}
+
+          <div className="podium-slider">
+            {[...podium].map((r, i) => ({ r, rank: i + 1 })).reverse().map(({ r, rank }) => (
+              <div key={r.key} className="podium-slide">
+                <GlassCard className={`p${rank}`}>
+                  {podiumCard(r, rank)}
+                </GlassCard>
+              </div>
+            ))}
+          </div>
+        </>)}
 
         {podium.length > 0 && (
           <p className="muted small" style={{ textAlign: 'center', margin: '24px 0 0' }}>
