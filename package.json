@@ -23,7 +23,8 @@
     "stripe": "^23.0.0",
     "tailwind-animations": "^1.0.2",
     "tailwindcss": "^4.3.3",
-    "three": "^0.170.0"
+    "three": "^0.170.0",
+    "three-mesh-bvh": "^0.9.16"
   },
   "overrides": {
     "braces": "^3.0.3",
@@ -41,11 +42,11 @@
   },
   "browserslist": [
     "ios >= 15",
-    "safari >= 15",   
+    "safari >= 15",
     "chrome >= 111",
     "edge >= 111",
     "firefox >= 115",
     "safari >= 16.4",
     "ios_saf >= 16.4"
-  ]  
+  ]
 }
