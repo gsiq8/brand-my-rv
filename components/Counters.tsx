@@ -10,11 +10,10 @@ export default function Counters({ data, visitors }: { data: BoardResponse | nul
   if (COPY.counters.viewsValue) items.push({ v: COPY.counters.viewsValue, l: COPY.counters.viewsLabel });
   if (visitors != null) items.push({ v: n(visitors), l: 'visitors' });
   if (data) items.push({ v: `${data.stats.taken}/${data.stats.total}`, l: 'spots sold' });
-  if (!items.length) return null;
   return (
-    <div className="counters text-[12px] mb-8 md:mb-5 muted ">
+    <div className="counters" aria-live="polite">
       {items.map((it, i) => (
-        <span key={it.l}>{i > 0 && <i className="dot text-(--mm)"> • </i>}<b> {it.v}</b> {it.l}</span>
+        <span key={it.l}>{i > 0 && <i className="dot">•</i>}<b>{it.v}</b> {it.l}</span>
       ))}
     </div>
   );

@@ -40,7 +40,7 @@ export default function Site() {
   }, []);
 
   const board = useMemo<Record<string, BoardEntry>>(() => Object.fromEntries((data?.board ?? []).map((e) => [e.spotId, e])), [data]);
-  const logos = useMemo(() => Object.fromEntries(Object.values(board).map((e) => [e.spotId, e.leader?.logoUrl ?? null])), [board]);
+  const logos = useMemo(() => Object.fromEntries(Object.values(board).map((e) => [e.spotId, e.leader?.logoFullUrl ?? null])), [board]);
   const amounts = useMemo(() => Object.fromEntries(Object.values(board).map((e) => [e.spotId, e.leader?.amount ?? null])), [board]);
   const mins = useMemo(() => Object.fromEntries(Object.values(board).map((e) => [e.spotId, e.min])), [board]);
   const hasCorner = cornerHolders(data?.history ?? []).some((h) => h.current);

@@ -13,6 +13,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <link rel="icon" href="https://emojifavicon.com/🚐" />
       <SpeedInsights/>
+      <link rel="preconnect" href="https://bbegfjjabvchajnasqkb.supabase.co" crossOrigin="anonymous" />
+
       {/* <head>{DF && <script defer data-website-id={DF} data-domain={DOMAIN} src="https://datafa.st/js/script.js" />}</head> */}
       <body suppressHydrationWarning>{children}</body>
     </html>

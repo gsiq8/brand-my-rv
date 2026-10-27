@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 import { SPOTS, isRv } from '@/lib/spots';
 import { minBidFor } from '@/lib/pricing';
 import { db } from '@/lib/server/supabase';
-import { logoUrl } from '@/lib/server/auction';
+import { logoUrl, logoThumbUrl, closeDueAuctions } from '@/lib/server/auction';
 import type { BoardEntry, BoardResponse, HistoryItem, SpotState } from '@/lib/types';
-import { closeDueAuctions } from '@/lib/server/auction';
 import { CONFIG } from '@/lib/config';
+
 
 
 
@@ -40,6 +40,7 @@ export async function GET() {
     const holders = mine.filter((r) => HOLDERS.includes(r.status)).sort(byAmount);
     const top = holders[0];
     const a = auctions.get(s.id);
+
     return {
       spotId: s.id,
       min: minBidFor(s, live[0]?.amount ?? null),
@@ -47,11 +48,16 @@ export async function GET() {
       pending: mine.filter((r) => r.status === 'review').length,
       state: ((a?.status as SpotState) ?? 'open'),
       closesAt: a?.closes_at ?? null,
-      leader: top
-        ? { name: top.display_name, amount: top.amount, logoUrl: top.logo_path ? logoUrl(top.logo_path) : null, website: top.website ?? null }
-        : null,
+      leader: top ? {
+      name: top.display_name, amount: top.amount,
+      logoUrl: top.logo_path ? logoThumbUrl(top.logo_path) : null,
+      logoFullUrl: top.logo_path ? logoUrl(top.logo_path) : null,
+      website: top.website ?? null,
+    } : null,
     };
   });
+
+  
 
   const rvIds = new Set(SPOTS.filter(isRv).map((s) => s.id));
   const rvBoard = board.filter((e) => rvIds.has(e.spotId));
@@ -63,7 +69,7 @@ export async function GET() {
     : null;
   return {
     id: r.id, spotId: r.spot_id, name: r.display_name, amount: r.amount, status: r.status, at: r.created_at,
-    logoUrl: shown && r.logo_path ? logoUrl(r.logo_path) : null,
+    logoUrl: shown && r.logo_path ? logoThumbUrl(r.logo_path) : null,
     website: shown ? r.website ?? null : null,
     charged,
   };
@@ -71,6 +77,7 @@ export async function GET() {
 
   const res: BoardResponse = {
     board, history,
+    
     stats: {
       raised: rvBoard.reduce((n, e) => n + (e.leader?.amount ?? 0), 0),
       bids: rows.length,

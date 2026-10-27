@@ -8,7 +8,8 @@ export default function GlassCard({ children, className = '', radius = 24, initi
   useEffect(() => {
     const el = inner.current;
     if (!el) return;
-    const sync = () => { setH(el.offsetHeight); window.dispatchEvent(new Event('resize')); };   // the lib re-measures its edge
+    const sync = () => { setH(el.offsetHeight); 
+      if (window.matchMedia('(min-width: 761px)').matches) window.dispatchEvent(new Event('resize')); };   // the lib re-measures its edge
     sync();
     const ro = new ResizeObserver(sync);
     ro.observe(el);

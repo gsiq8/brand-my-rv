@@ -7,6 +7,11 @@ import { sizeInfo, RV_SPOTS as SPOTS, type RvSpot as SpotDef } from '@/lib/spots
 import { CONFIG } from '@/lib/config';
 import { skyFor } from '@/lib/sky';
 import AmbientSound from './AmbientSound';
+import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast } from 'three-mesh-bvh';
+
+(THREE.BufferGeometry.prototype as any).computeBoundsTree = computeBoundsTree;
+(THREE.BufferGeometry.prototype as any).disposeBoundsTree = disposeBoundsTree;
+THREE.Mesh.prototype.raycast = acceleratedRaycast;
 
 export type ViewName = 'front' | 'back' | 'left' | 'right' | 'top' | '3D';
 export type Props = {
@@ -48,7 +53,8 @@ export default function Motorhome3D(props: Props) {
   useEffect(() => {
     const el = box.current!;
     const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio,
+      window.matchMedia('(max-width: 760px)').matches ? 1.25 : 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     const dom = renderer.domElement;
     dom.style.cssText = 'display:block;width:100%;height:100%;touch-action:none;cursor:grab';
@@ -59,6 +65,10 @@ export default function Motorhome3D(props: Props) {
     const cam = new THREE.PerspectiveCamera(38, 1, 0.05, 120);
     const dist = (d: number) => Math.max(d, d / (cam.aspect || 1));
     const controls = new OrbitControls(cam, dom);
+    let dirty = true, visible = true;
+    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { rootMargin: '200px' });
+    io.observe(el);
+    controls.addEventListener('change', () => { dirty = true; });
     controls.enabled = !latest.current.readOnly;
     controls.target.copy(TARGET); controls.enableDamping = true; controls.enablePan = false;
     controls.minDistance = 1.2; controls.maxDistance = 7; controls.minPolarAngle = 0.04; controls.maxPolarAngle = 1.52;
@@ -117,7 +127,7 @@ export default function Motorhome3D(props: Props) {
     } else { applySky(); skyTimer = setInterval(applySky, 300000); }
 
     // ---- ad spots: planes laid on the real surface of the model ----
-    type St = { cv: HTMLCanvasElement; tex: THREE.CanvasTexture; mesh: THREE.Mesh; logo: string | null; min: number; placed: boolean; amount: number | null };
+    type St = { cv: HTMLCanvasElement; tex: THREE.CanvasTexture; mesh: THREE.Mesh; logo: string | null; min: number; placed: boolean; amount: number | null; key: string; };
     const st: Record<string, St> = {};
     const images = new Map<string, HTMLImageElement>();
     let draftImg: HTMLImageElement | null = null, draftKey = '', selected: string | null = null, draft: Props['draft'] = null, lastView = -1, mode: Props['mode'] = 'auction';
@@ -127,7 +137,7 @@ export default function Motorhome3D(props: Props) {
       const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
       const mat = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, transparent: true, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });      adMats.push(mat);
       const mesh = new THREE.Mesh(new THREE.PlaneGeometry(s.w, s.h), mat); mesh.userData.id = s.id; mesh.visible = false;
-      scene.add(mesh); meshes.push(mesh); st[s.id] = { cv, tex, mesh, logo: null, min: s.price, placed: false, amount: null };
+      scene.add(mesh); meshes.push(mesh); st[s.id] = { cv, tex, mesh, logo: null, min: s.price, placed: false, amount: null, key: '' };
     });
     const shortFmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: CONFIG.currency.toUpperCase(), notation: 'compact', maximumFractionDigits: 1 });
     const draw = (s: SpotDef) => {
@@ -162,7 +172,7 @@ export default function Motorhome3D(props: Props) {
         g.setLineDash(!sel && !im ? [28, 18] : []);                            // tracejado fixo
         g.strokeRect(LW / 2, LW / 2, w - LW, h - LW);
       }
-      o.tex.needsUpdate = true;
+      o.tex.needsUpdate = true; dirty = true;
     };
     const loadImg = (url: string, then: () => void) => {
       let i = images.get(url);
@@ -226,16 +236,20 @@ const V = (a: number[]) => new THREE.Vector3(a[0], a[1], a[2]);
     const o2 = st[s.id];
     o2.mesh.geometry.dispose(); o2.mesh.geometry = geo;           // vertices are already in world space
     o2.mesh.position.set(0, 0, 0); o2.mesh.quaternion.identity(); o2.mesh.updateMatrixWorld(true);
-    o2.placed = true; applyVis();
+    o2.placed = true; applyVis(); dirty =true;
     if (DEBUG) console.log(`${s.id}: ${fit}/${pos.count} vertices on the surface, normal`, n.toArray().map((v) => +v.toFixed(2)));
   };
 
     // ---- the motorhome ----
     new GLTFLoader().load('/models/motorhome.glb', (g) => {
       const car = g.scene;
-      car.traverse((o) => { const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined; if (m) { m.envMapIntensity = 0.9; m.side = THREE.DoubleSide; } });
+      car.traverse((o) => {
+        const mesh = o as THREE.Mesh;
+        if (mesh.isMesh) mesh.geometry.computeBoundsTree();
+        const m = mesh.material as THREE.MeshStandardMaterial | undefined;
+        if (m) { m.envMapIntensity = 0.9; m.side = THREE.DoubleSide; }
+      });
       scene.add(car); car.updateMatrixWorld(true);
-      if (DEBUG) { const b = new THREE.Box3().setFromObject(car); console.log('motorhome bbox', b.min.toArray(), b.max.toArray()); }
       SPOTS.forEach((s) => placeSpot(s, car));
     });
 
@@ -272,9 +286,18 @@ const V = (a: number[]) => new THREE.Vector3(a[0], a[1], a[2]);
         if (p.draft && p.draft.dataUrl !== draftKey) { draftKey = p.draft.dataUrl; draftImg = new Image(); draftImg.onload = () => SPOTS.forEach(draw); draftImg.src = draftKey; }
         if (!p.draft) { draftKey = ''; draftImg = null; }
         SPOTS.forEach((s) => {
-          const o = st[s.id]; o.min = p.mins[s.id] ?? s.price; o.logo = p.logos[s.id] ?? null; o.amount = p.amounts[s.id] ?? null;
-          if (o.logo) loadImg(o.logo, () => draw(s));
-          draw(s);
+          const o = st[s.id];
+          o.min = p.mins[s.id] ?? s.price;
+          o.logo = p.logos[s.id] ?? null;
+          o.amount = p.amounts[s.id] ?? null;
+          const key = [o.min, o.logo, o.amount, selected === s.id, mode,
+            draft?.spotId === s.id ? draftKey : ''].join('|');
+          if (key !== o.key) {
+            o.key = key;
+            if (o.logo) loadImg(o.logo, () => draw(s));
+            draw(s);
+            dirty = true;
+          }
         });
         applyVis();
         if (p.view && p.view.n !== lastView) { lastView = p.view.n; go(p.view.name); }
@@ -295,17 +318,21 @@ const V = (a: number[]) => new THREE.Vector3(a[0], a[1], a[2]);
       controls.update();      
     const clock = new THREE.Clock();
     renderer.setAnimationLoop(() => {
+      if (!visible) return;
       const dt = clock.getDelta();
       if (anim) {
         anim.t = Math.min(1, anim.t + dt * 2.2);
         const k = 1 - Math.pow(1 - anim.t, 3), [a, b] = [anim.from, anim.to];
         const th = a[0] + (b[0] - a[0]) * k, ph = a[1] + (b[1] - a[1]) * k, r = a[2] + (b[2] - a[2]) * k;
         cam.position.set(TARGET.x + r * Math.sin(ph) * Math.cos(th), TARGET.y + r * Math.cos(ph), TARGET.z + r * Math.sin(ph) * Math.sin(th));
-        if (anim.t >= 1) { anim = null; latest.current.onAnimationDone?.(); }
+        dirty = true;
+        if (anim.t >= 1) anim = null;
       }
-      controls.update(); renderer.render(scene, cam);
+      controls.update();
+      if (dirty) { renderer.render(scene, cam); dirty = false; }
     });
 
+    io.disconnect();
     return () => {
       renderer.setAnimationLoop(null); ro.disconnect(); if (skyTimer) clearInterval(skyTimer);
       controls.dispose(); bgTex?.dispose(); envRT?.dispose(); pmrem.dispose(); renderer.dispose(); dom.remove(); api.current = null;

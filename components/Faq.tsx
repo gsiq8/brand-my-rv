@@ -12,10 +12,12 @@ export default function Faq() {
   useLayoutEffect(() => {
     const el = inner.current;
     if (!el) return;
-    const ro = new ResizeObserver(() => window.dispatchEvent(new Event('resize')));
+    const ro = new ResizeObserver(() => {
+      if (window.matchMedia('(min-width: 761px)').matches) window.dispatchEvent(new Event('resize'));
+    })   
     ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
+        return () => ro.disconnect();
+      }, []);
 
   return (
     <section className="wrap faq-sec" id="faq">

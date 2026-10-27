@@ -8,6 +8,7 @@ import { SPOTS, isRv } from '@/lib/spots';
 import { CONFIG } from '@/lib/config';
 import { closeAt, defaultCaptureCents } from '@/lib/pricing';
 import { money } from '@/lib/format';
+import sharp from 'sharp';
 
 /**
  * Bid status:
@@ -43,6 +44,7 @@ const track = (b: BidRow, metric: KlaviyoMetric, extra: Record<string, unknown> 
     `${metric}-${b.id}`);
 
 export const logoUrl = (path: string) => db().storage.from('logos').getPublicUrl(path).data.publicUrl;
+export const logoThumbUrl = (path: string) => logoUrl(path.replace(/\.webp$/, '-sm.webp'));
 
 async function findBid(id: string) {
   const { data, error } = await db().from('bids').select(BID).eq('id', id).maybeSingle();
@@ -82,9 +84,21 @@ async function releaseMoney(pi: string | null) {
 async function publishLogo(b: BidRow) {
   const { data, error } = await db().storage.from('logo-uploads').download(b.upload_path);
   if (error || !data) throw error ?? new Error('logo missing');
-  const path = `${b.spot_id}/${b.id}.png`;
-  const up = await db().storage.from('logos').upload(path, data, { contentType: 'image/png', upsert: true });
-  if (up.error) throw up.error;
+  const src = Buffer.from(await data.arrayBuffer());
+  const opts = { contentType: 'image/webp', upsert: true, cacheControl: '31536000' };
+
+  const full = await sharp(src)
+    .resize({ width: 800, height: 800, fit: 'inside', withoutEnlargement: true })
+    .webp({ quality: 82 }).toBuffer();
+  const thumb = await sharp(src)
+    .resize({ width: 256, height: 256, fit: 'inside', withoutEnlargement: true })
+    .webp({ quality: 80 }).toBuffer();
+
+  const path = `${b.spot_id}/${b.id}.webp`;
+  const a = await db().storage.from('logos').upload(path, full, opts);
+  if (a.error) throw a.error;
+  const c = await db().storage.from('logos').upload(path.replace(/\.webp$/, '-sm.webp'), thumb, opts);
+  if (c.error) throw c.error;
   return path;
 }
 

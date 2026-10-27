@@ -4,6 +4,7 @@ import { CONFIG } from '@/lib/config';
 import { COPY } from '@/lib/site';
 import { money } from '@/lib/format';
 import type { BoardResponse } from '@/lib/types';
+import { useEffect, useRef, useState } from 'react';
 import type { Props as RvProps, ViewName } from './Motorhome3D';
 import Counters from './Counters';
 
@@ -21,6 +22,18 @@ type Props = RvProps & {
 export default function Hero({ data, visitors, onView, onMode, onGetSpot, ...rv }: Props) {
   const raised = data?.stats.raised ?? 0, goal = CONFIG.goal;
   const pct = goal > 0 ? Math.round((raised / goal) * 100) : 0;
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [mount, setMount] = useState(false);
+  useEffect(() => {
+    const el = stageRef.current; if (!el) return;
+    const io = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) return;
+      io.disconnect();
+      window.requestIdleCallback(() => setMount(true));
+    }, { rootMargin: '300px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
 return (
     
@@ -49,7 +62,9 @@ return (
       <div className="seg" role="tablist" aria-label="View">
         {VIEWS.map(([n, label]) => <button key={n} className={rv.view?.name === n ? 'on' : ''} onClick={() => onView(n)}>{label}</button>)}
       </div>
-      <div className="stage mt-4 "><Motorhome3D {...rv} /></div>
+      <div className="stage" ref={stageRef}>
+        {mount ? <Motorhome3D {...rv} /> : <div className="load">Loading 3D model…</div>}
+      </div>
       <div className="seg" role="tablist" aria-label="Mode">
         <button className={rv.mode === 'auction' ? 'on' : ''} onClick={() => onMode('auction')}>The auction</button>
         <button className={rv.mode === 'final' ? 'on' : ''} onClick={() => onMode('final')}>Final look</button>
