@@ -1,4 +1,5 @@
 'use client';
+import { useEffect, useRef, useState } from 'react';
 import { COPY } from '@/lib/site';
 import { SPOTS } from '@/lib/spots';
 import { cornerHolders, heldFor } from '@/lib/corner';
@@ -26,6 +27,20 @@ function Row({ h }: { h: Holder }) {
 
 export default function Corner({ entry, items, onBid }: { entry?: BoardEntry; items: HistoryItem[]; onBid: () => void }) {
   const spot = SPOTS.find((s) => s.id === 'corner');
+
+  // The Glass shrink-wraps its content, so % widths don't work inside it.
+  // Measure the stage (full width of the section's wrap) and give the card that width in px.
+  const stage = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState<number>();
+  useEffect(() => {
+    const el = stage.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setWidth(el.clientWidth));
+    ro.observe(el);
+    setWidth(el.clientWidth);
+    return () => ro.disconnect();
+  }, []);
+
   if (!spot) return null;
 
   const holders = cornerHolders(items);
@@ -33,15 +48,21 @@ export default function Corner({ entry, items, onBid }: { entry?: BoardEntry; it
   const winner = holders.find((h) => h.current) ?? holders[0];
   const past = holders.filter((h) => h !== winner);
 
+  // liquid-glass-react measures its content once and draws its shape/border layers at that size.
+  // Starting empty ("Nobody yet") and then growing left the old, small outline behind.
+  // Changing the key remounts the Glass so it re-measures whenever the card's size changes.
+  const glassKey = `${winner ? 1 : 0}-${Math.min(past.length, 3)}-${width ?? 0}`;
+
   return (
     <section className="wrap faq-sec" id="corner">
       <h2>The strip</h2>
       <p className="lead">{COPY.cornerLead}</p>
 
-      <div className="cr-stage">
+      <div className="cr-stage" ref={stage} style={width ? ({ ['--cr-width' as string]: `${width}px` }) : undefined}>
         <Glass
+          key={glassKey}
           className="cr-glass"
-         
+          mode="polar"
           displacementScale={70}
           blurAmount={0.02}
           saturation={140}
