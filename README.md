@@ -5,6 +5,7 @@ or reserve with a deposit. When a payment is confirmed the logo goes live and th
 
 > This code was written without being run or type-checked. Expect to fix small things on the first `npm run dev` / `npm run build`.
 
+boraaa 
 ## 1. Setup
 1. `npm install`
 2. Copy `.env.example` to `.env.local` and fill it in.
