@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 type Row = {
   id: string; spot_id: string; display_name: string; amount: number; currency: string; status: string;
@@ -15,15 +15,23 @@ const DONE: Record<Act, string> = {
 };
 
 export default function Admin() {
-  const [secret, setSecret] = useState('');
+  const [secret, setSecret] = useState(() =>
+    typeof window !== 'undefined' ? localStorage.getItem('adminSecret') ?? '' : ''
+  );
   const [rows, setRows] = useState<Row[] | null>(null);
   const [msg, setMsg] = useState('');
   const h = { 'x-admin-secret': secret };
 
   async function load() {
     const r = await fetch('/api/admin/bids', { headers: h });
-    if (!r.ok) { setMsg('Wrong secret or server error.'); return; }
-    setRows((await r.json()).bids); setMsg('');
+    if (!r.ok) {
+      localStorage.removeItem('adminSecret');
+      setMsg('Wrong secret or server error.');
+      return;
+    }
+    localStorage.setItem('adminSecret', secret);
+    setRows((await r.json()).bids);
+    setMsg('');
   }
 
   async function act(id: string, what: Act) {
@@ -36,12 +44,27 @@ export default function Admin() {
     load();
   }
 
+  useEffect(() => {
+    if (secret) load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  
+
   return (
     <main style={{ maxWidth: 820, margin: '40px auto', padding: 16, fontFamily: 'system-ui' }}>
-      <h1>Bids admin</h1>
-      <input type="password" placeholder="Admin secret" value={secret} onChange={(e) => setSecret(e.target.value)} style={{ padding: 8, marginRight: 8 }} />
-      <button onClick={load}>Load bids</button> <span>{msg}</span>
-
+      <div className='border-1 border-neutral-200 rounded-2xl shadow-xl inset-shadow-sm justify-items-center md:max-w-[20rem] md:mx-50 md:mb-10 m-4 mb-6 p-4 py-6'>
+      <h1 className="font-bold pb-2 text-center">Bids admin</h1>
+      <div className='place-self-center m-4'>
+      <input className="border-1 border-black w-[14rem] rounded-md" type="password" placeholder="Admin secret" value={secret} onChange={(e) => setSecret(e.target.value)} style={{ padding: 8 }} />
+      </div>
+      <div className='flex flex-row'>
+      <button className=" m-2 bg-black rounded-md text-white font-bold font-[10px] py-1 px-3" onClick={load}>Log in</button> 
+      <button className=" m-2 bg-black rounded-md text-white font-bold font-[10px] py-1 px-3" onClick={() => { localStorage.removeItem('adminSecret'); setSecret(''); setRows(null); }}>
+        Log out
+      </button>
+      </div>
+      <span className="flex-wrap">{msg}</span>
+      </div>
       {rows?.map((b) => {
         const canRefuse = ['awaiting_payment', 'review', 'paid'].includes(b.status);
         const canApprove = (b.status === 'review' || b.status === 'paid') && !b.logo_approved;
