@@ -14,8 +14,10 @@ import { Footer, HowItWorks, Specs } from './StaticSections';
 import Host from './Host';
 import Faq from './Faq'
 import IntroSection from './IntroSection';
-import Background from './Background';
 import { cornerHolders } from '@/lib/corner';
+import dynamic from 'next/dynamic';
+
+const Background = dynamic(() => import('./Background'), { ssr: false });
 
 export default function Site() {
   const [data, setData] = useState<BoardResponse | null>(null);
