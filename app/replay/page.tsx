@@ -6,10 +6,12 @@ import { buildEvents, stateAt } from '@/lib/replay';
 import type { BoardResponse } from '@/lib/types';
 import ReplayScene from '@/components/Replay';
 import Header from '@/components/Header';
+import { useRouter } from 'next/navigation';
 
 const SPEEDS = [10, 20, 45, 90] as const;
 
 export default function Replay() {
+  const router = useRouter();
   const [d, setD] = useState<BoardResponse | null>(null);
   const [i, setI] = useState(0);
   const [play, setPlay] = useState(false);
@@ -67,7 +69,7 @@ export default function Replay() {
 
   return (
     <>
-    <Header onGetSpot={() => { window.location.href = '/#spots'; }} />
+    <Header onGetSpot={() => { router.push('/#spots');}} />
     <div className="bg-[#f5f5f7] pt-6">
     <main className="wrap" style={{ maxWidth: 1100 }}>
     

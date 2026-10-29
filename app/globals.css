@@ -6,6 +6,11 @@
 
 @media (min-width: 1432px) { :root { --side: 176px; } }
 
+
+.glass-slot .bg-black,
+.strip-lg ~ .bg-black,
+div.bg-black.pointer-events-none { display: none !important; }
+
 html{scroll-behavior:smooth;scroll-padding-top:72px}
 html,body{margin:0}
 body{background:var(--bg);color:var(--tx);font:16px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", "Inter Fallback", "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
@@ -546,6 +551,7 @@ p{font-size: 13px}
 }
 
 /* Append to your global stylesheet */
+
 .cr-stage {
   --cr-row: 56px;
   --cr-winner: calc(var(--cr-row) * 2);     /* winner row is twice a normal row */

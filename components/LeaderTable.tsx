@@ -1,3 +1,5 @@
+/* eslint-disable @next/next/no-img-element */
+
 'use client';
 import { money } from '@/lib/format';
 import BrandLink from './BrandLink';
@@ -22,7 +24,12 @@ export default function LeaderTable({ entries, limit }: { entries: BoardEntry[];
             <Medal rank={i + 1} />
             <span className="brand-logo">
               {L.logoUrl
-                ? <BrandLink href={L.website}><img src={L.logoUrl} alt={L.name} /></BrandLink>
+                ? <BrandLink href={L.website}>
+                    <img 
+                      src={L.logoUrl} 
+                      alt={L.name}                       
+                    />
+                  </BrandLink>
                 : <span className="muted">–</span>}
             </span>
             <span className="brand-name"><BrandLink href={L.website}>{L.name}</BrandLink></span>

@@ -9,8 +9,12 @@ import { skyFor } from '@/lib/sky';
 import AmbientSound from './AmbientSound';
 import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast } from 'three-mesh-bvh';
 
-(THREE.BufferGeometry.prototype as any).computeBoundsTree = computeBoundsTree;
-(THREE.BufferGeometry.prototype as any).disposeBoundsTree = disposeBoundsTree;
+const geometryProto = THREE.BufferGeometry.prototype as unknown as {
+  computeBoundsTree: typeof computeBoundsTree;
+  disposeBoundsTree: typeof disposeBoundsTree;
+};
+geometryProto.computeBoundsTree = computeBoundsTree;
+geometryProto.disposeBoundsTree = disposeBoundsTree;
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
 
 export type ViewName = 'front' | 'back' | 'left' | 'right' | 'top' | '3D';
@@ -48,7 +52,7 @@ export default function Motorhome3D(props: Props) {
   const box = useRef<HTMLDivElement>(null);
   const api = useRef<Api | null>(null);
   const latest = useRef(props);
-  latest.current = props;
+  useEffect(() => { latest.current = props; });   // keep the latest props for event handlers (no ref writes during render)
 
   useEffect(() => {
     const el = box.current!;

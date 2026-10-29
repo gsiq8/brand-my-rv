@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react';
 const pad = (n: number) => String(n).padStart(2, '0');
 
 export default function Countdown({ until }: { until: string }) {
-  const [now, setNow] = useState<number | null>(null);   // null until mounted, avoids a server/client mismatch
+  const [now, setNow] = useState<number | null>(() => Date.now());
+
   useEffect(() => {
-    setNow(Date.now());
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);

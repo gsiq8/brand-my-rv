@@ -31,15 +31,21 @@ export default function Site() {
   const load = useCallback(async () => {
     try { const r = await fetch('/api/board', { cache: 'no-store' }); if (r.ok) setData(await r.json()); } catch { /* keep old data */ }
   }, []);
-  useEffect(() => { load(); const t = setInterval(load, 20000); return () => clearInterval(t); }, [load]);
-  useEffect(() => {                       // count this visit once per browser session
-    let counted = false;
-    try { counted = !!sessionStorage.getItem('visited'); } catch { /* storage blocked */ }
-    fetch('/api/visit', { method: counted ? 'GET' : 'POST' }).then((r) => r.json()).then((d) => {
-      if (typeof d.visitors === 'number') setVisitors(d.visitors);
-      try { sessionStorage.setItem('visited', '1'); } catch { /* ignore */ }
-    }).catch(() => {});
-  }, []);
+
+    useEffect(() => {
+      queueMicrotask(() => load());
+      const t = setInterval(load, 20000);
+      return () => clearInterval(t);
+    }, [load]);
+
+    useEffect(() => {                       // count this visit once per browser session
+      let counted = false;
+      try { counted = !!sessionStorage.getItem('visited'); } catch { /* storage blocked */ }
+      fetch('/api/visit', { method: counted ? 'GET' : 'POST' }).then((r) => r.json()).then((d) => {
+        if (typeof d.visitors === 'number') setVisitors(d.visitors);
+        try { sessionStorage.setItem('visited', '1'); } catch { /* ignore */ }
+      }).catch(() => {});
+    }, []);
 
   const board = useMemo<Record<string, BoardEntry>>(() => Object.fromEntries((data?.board ?? []).map((e) => [e.spotId, e])), [data]);
   const logos = useMemo(() => Object.fromEntries(Object.values(board).map((e) => [e.spotId, e.leader?.logoFullUrl ?? null])), [board]);

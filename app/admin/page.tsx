@@ -1,5 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 import { useState, useEffect } from 'react';
+ 
 
 type Row = {
   id: string; spot_id: string; display_name: string; amount: number; currency: string; status: string;
@@ -45,7 +47,9 @@ export default function Admin() {
   }
 
   useEffect(() => {
-    if (secret) load();
+    if (secret) {
+     queueMicrotask(() => load());
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
@@ -83,7 +87,14 @@ export default function Admin() {
                 {b.website && <><br /><a href={b.website} target="_blank" rel="noopener noreferrer">{b.website}</a></>}
               </div>
             )}
-            {b.logoUrl && <img src={b.logoUrl} alt="uploaded logo" style={{ maxHeight: 120, maxWidth: 280, background: '#eee', margin: '6px 0', display: 'block' }} />}
+            {b.logoUrl && 
+           
+              <img 
+              src={b.logoUrl} 
+              alt="uploaded logo" 
+              style={{ maxHeight: 120, maxWidth: 280, background: '#eee', margin: '6px 0', display: 'block' }}             
+              />
+            }
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {canApprove && <button className="bg-blue-200 rounded-md px-3 py-1" onClick={() => act(b.id, 'logo-check')}>Approve logo</button>}
               {b.status === 'won' && <button className="bg-green-100 rounded-md px-3 py-1" onClick={() => act(b.id, 'settle')}>Wire received</button>}

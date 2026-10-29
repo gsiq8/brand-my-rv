@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 import { COPY } from '@/lib/site';
 
 export default function Header({ onGetSpot }: { onGetSpot?: () => void }) {
@@ -19,13 +20,13 @@ export default function Header({ onGetSpot }: { onGetSpot?: () => void }) {
           <span /><span /><span />
         </button>
         
-        <a className="brand" href="/#top">🚐 {COPY.name}</a>
+        <Link className="brand" href="/#top">🚐 {COPY.name}</Link>
         
         <nav className={`nav ${open ? 'nav-open' : ''}`}>
-          <a href="/#spots"onClick={close}>The auction</a>
-          <a href="/leaderboard"onClick={close}>Leaderboard</a>
-           <a href="/replay"onClick={close}>Replay</a> 
-          <a href="/#corner"onClick={close}>The strip</a>
+          <Link href="/#spots" onClick={close}>The auction</Link>
+          <Link href="/leaderboard" onClick={close}>Leaderboard</Link>
+           <Link href="/replay" onClick={close}>Replay</Link>
+          <Link href="/#corner" onClick={close}>The strip</Link>
         </nav>
         {onGetSpot && <button className="btn dark" onClick={onGetSpot}>Get a spot</button>}
         

@@ -11,8 +11,8 @@ export default function Page() {
             <h4 className='text-xl font-semibold tracking-[-0.01em]'>What is being sold</h4>
             <div className='mt-3 muted space-y-3 text-[15px] leading-relaxed [&_a]:text-blue hover:[&_a]:underline [&_strong]:font-medium [&_strong]:text-ink'>
               <p>Advertising spots on the surfaces of a Class C expedition motorhome: sides, rear and roof (and the front, for truck and builder brands only). A spot buys a logo printed in automotive vinyl and displayed in the auction board, photos and public-facing trip record.</p>
-              <p>You can also take “the strip”, the top of this website: a one-time payment, non-refundable, that stays at the top until someone bids higher; everyone who held it stays listed.</p>
-              <p>This is a personal project run by Giovana Siquieroli, operating as "GOIA". It is not affiliated with, endorsed by or sponsored by any vehicle maker or brand shown.</p>
+              <p>You can also take &quot;The Strip&quot;, the top of this website: a one-time payment, non-refundable, that stays at the top until someone bids higher; everyone who held it stays listed.</p>
+              <p>This is a personal project run by Giovana Siquieroli, operating as &quot;GOIA&quot;. It is not affiliated with, endorsed by or sponsored by any vehicle maker or brand shown.</p>
             </div>
           </section>
 
@@ -40,7 +40,7 @@ export default function Page() {
             <h4 className='text-xl font-semibold tracking-[-0.01em]'>Closing and settlement</h4>
             <div className='mt-3 muted space-y-3 text-[15px] leading-relaxed'>
               <ul>
-                <li>When the spot closes, the highest live bid wins. The winner receives a Sponsorship Agreement and a Commercial Invoice from "GOIA" by email.</li>
+                <li>When the spot closes, the highest live bid wins. The winner receives a Sponsorship Agreement and a Commercial Invoice from &quot;GOIA&quot; by email.</li>
                 <li>The winner signs the agreement and pays the full amount by bank transfer within 48 hours of the closing notice. The bid is <b>not charged to the card</b>.</li>
                 <li>When the transfer is received, the card hold is released and the spot is sold.</li>
                 <li>If the transfer is not received within 48 hours, a media exposure fee of <b>10% of the winning bid</b> is charged to the held card, and the rest of the hold is released automatically. The spot is then not sold to that bidder.</li>

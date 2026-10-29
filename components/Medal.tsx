@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react';
+
 const STYLE = [
   'bg-[linear-gradient(145deg,#f8dd86_0%,#e0b64a_45%,#c1902a_100%)] text-[#5f4310] ring-1 ring-inset ring-[#b8862a]/40 font-medium',   // gold
   'bg-[linear-gradient(145deg,#f1f2f4_0%,#cdced2_45%,#a4a5aa_100%)] text-zinc-700 font-medium',             // silver (yours)
@@ -12,10 +14,10 @@ export default function Medal({ rank, size = 28, mobileSize = 24, className = ''
         width: 'var(--medal-size)',
         height: 'var(--medal-size)',
         fontSize: 'calc(var(--medal-size) * 0.36)',
-        ['--medal-size' as any]: `${mobileSize}px`,
-      }}
+        '--medal-size': `${mobileSize}px`,
+      } as CSSProperties}
     >
-      <span className="[--medal-size:var(--desktop-size)] sm:[--medal-size:var(--desktop-size)]" style={{ ['--desktop-size' as any]: `${size}px` }}>
+      <span className="[--medal-size:var(--desktop-size)] sm:[--medal-size:var(--desktop-size)]" style={{ '--desktop-size': `${size}px` } as CSSProperties}>
         {rank}
       </span>
     </span>

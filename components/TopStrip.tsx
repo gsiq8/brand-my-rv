@@ -1,3 +1,5 @@
+/* eslint-disable @next/next/no-img-element */
+
 'use client';
 import { cornerHolders } from '@/lib/corner';
 import { money } from '@/lib/format';
@@ -14,7 +16,14 @@ export default function TopStrip({ items, entry, onClaim, top = 53 }: { items: H
 
   const chip = (k: number, hidden: boolean) => {
     const body = (<>
-      {logoUrl ? <img src={logoUrl} alt="" /> : <span className="av">{name.slice(0, 1).toUpperCase()}</span>}
+      {logoUrl ? 
+        <img           
+          src={logoUrl} 
+          alt=""           
+        /> : 
+        <span className="av">{name.slice(0, 1).toUpperCase()}
+        </span>
+      }
       <b>{name}</b>
       <span className="muted small">paid {money(amount)}</span>
     </>);

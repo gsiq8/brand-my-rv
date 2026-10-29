@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 import { SPOTS, groupOf, isRv } from '@/lib/spots';
 import { money } from '@/lib/format';
@@ -30,7 +31,17 @@ export default function History({ items, board }: { items: HistoryItem[]; board:
                 </summary>
                 <ul>{list.map((x) => (
                   <li key={x.id}>
-                    {x.logoUrl ? <BrandLink href={x.website}> src={x.logoUrl} alt=""</BrandLink> : <span className="av">{x.name.slice(0, 1).toUpperCase()}</span>}
+                    {x.logoUrl ? 
+                      <BrandLink 
+                        href={x.website}>                         
+                        <img                           
+                          src={x.logoUrl} 
+                          alt=""
+                        />
+                      </BrandLink> : 
+                      <span className="av">{x.name.slice(0, 1).toUpperCase()}
+                      </span>
+                    }
                     <BrandLink><span><b>{x.name}</b> · {label(x.spotId)}</span></BrandLink>
                     <span className={'amt' + (win(x) ? ' win' : '')}>{money(x.amount)}</span>
                   </li>

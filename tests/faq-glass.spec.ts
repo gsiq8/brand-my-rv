@@ -1,5 +1,13 @@
 import { test, expect } from '@playwright/test';
 
+type Sample = {
+  spans: number;
+  topDrift: number;
+  borderTop: number;
+  borderBot: number;
+  rest: { bb: number };
+};
+
 const SAMPLE = `
 (async (idx) => {
   const slot = document.querySelector('.faq .glass-slot');
@@ -41,7 +49,7 @@ test('glass top stays fixed and border tracks content on every frame', async ({ 
 
   for (let i = 0; i < n; i++) {
     for (const phase of ['open', 'close']) {
-      const r: any = await page.evaluate(`${SAMPLE}(${i})`);
+      const r = await page.evaluate<Sample>(`${SAMPLE}(${i})`);
       console.log(`item ${i} ${phase}`, JSON.stringify(r));
       expect(r.spans, 'border layers found (selector sanity)').toBeGreaterThan(0);
       expect(r.topDrift, `item ${i} ${phase}: glass top moved`).toBeLessThanOrEqual(0.5);

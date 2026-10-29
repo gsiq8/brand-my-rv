@@ -1,5 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
+
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { COPY } from '@/lib/site';
 import { CONFIG } from '@/lib/config';
 import { RV_SPOTS, groupOf, sizeInfo } from '@/lib/spots';
@@ -10,10 +12,13 @@ import Countdown from './Countdown';
 
 const GROUPS = ['All spots', 'Front', 'Rear', 'Roof'];
 
+// Pass `now` into closing so it updates dynamically with your live timer
+function closing(e?: BoardEntry, now: number = Date.now()) {
+  const expired = !!e?.closesAt && new Date(e.closesAt).getTime() <= now;
 
-function closing(e?: BoardEntry) {
-  const expired = !!e?.closesAt && new Date(e.closesAt) <= new Date();
-  const open = (!e?.state || e.state === 'open') && !expired;
+  if (expired && (!e?.state || e.state === 'open')) {
+    return <span className="text-[#EC2128] font-bold wait">Expired</span>;
+  }
 
   switch (e?.state) {
     case 'settled': return <span className="chip sold">Sold</span>;
@@ -34,7 +39,15 @@ export default function Auction({ data, onBid }: { data: BoardResponse | null; o
   const list = all.filter((x) => group === 'All spots' || groupOf(x.s) === group);
   const top = all.filter((x) => x.e?.leader).slice(0, 3);
   const taken = all.filter((x) => x.e?.leader).length;
-  const live = !CONFIG.auctionEnd || Date.now() < new Date(CONFIG.auctionEnd).getTime();
+  
+  const [now, setNow] = useState<number>(() => Date.now());
+
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  const live = !CONFIG.auctionEnd || now < new Date(CONFIG.auctionEnd).getTime();
   const tiers = ['Small', 'Medium', 'Large'].map((l) => {
     const p = RV_SPOTS.filter((s) => sizeInfo(s).label === l).map((s) => s.price);
     return p.length ? `${l} from ${money(Math.min(...p))}` : null;
@@ -71,15 +84,18 @@ export default function Auction({ data, onBid }: { data: BoardResponse | null; o
             </thead>
             <tbody>
               {list.map(({ s, i, e }) => {
-                const open = !e?.state || e.state === 'open';
+                const expired = !!e?.closesAt && new Date(e.closesAt).getTime() <= now;
+                const isOpenState = !e?.state || e.state === 'open';
+                const canBid = isOpenState && !expired;
+                
                 const info = sizeInfo(s);
                 const cm = info.cm.replace('≈ ', '');
                 return (
                   <tr key={s.id}
-                    onClick={() => open && onBid(s.id)}
-                    tabIndex={open ? 0 : -1}
-                    onKeyDown={(ev) => open && ev.key === 'Enter' && onBid(s.id)}
-                    style={open ? undefined : { cursor: 'default', opacity: 0.7 }}>
+                    onClick={() => canBid && onBid(s.id)}
+                    tabIndex={canBid ? 0 : -1}
+                    onKeyDown={(ev) => canBid && ev.key === 'Enter' && onBid(s.id)}
+                    style={canBid ? undefined : { cursor: 'default', opacity: 0.7 }}>
 
                     <td className="c-spot">
                       <span className="badge">{i}</span>
@@ -98,7 +114,14 @@ export default function Auction({ data, onBid }: { data: BoardResponse | null; o
 
                     <td className="held c-held">{e?.leader ? (() => {
                       const L = e.leader;
-                      const inner = L.logoUrl ? <img src={L.logoUrl} alt={L.name} /> : L.name;
+                      const inner = L.logoUrl ? 
+                      
+                        <img 
+                          src={L.logoUrl} 
+                          alt={L.name}                   
+                          style={{ objectFit: 'contain'}}
+                         
+                        /> : L.name;
                       return L.website
                         ? <a href={L.website} target="_blank" rel="noopener noreferrer sponsored"
                           onClick={(ev) => ev.stopPropagation()} onKeyDown={(ev) => ev.stopPropagation()}>{inner}</a>
@@ -106,7 +129,7 @@ export default function Auction({ data, onBid }: { data: BoardResponse | null; o
                     })() : <span className="muted">Open</span>}
                     </td>
 
-                    <td className="small c-closes">{closing(e)}</td>
+                    <td className="small c-closes">{closing(e, now)}</td>
 
                     <td className="r c-bid">
                       <b>{e?.leader ? money(e.leader.amount) : `from ${money(s.price)}`}</b>
@@ -118,7 +141,7 @@ export default function Auction({ data, onBid }: { data: BoardResponse | null; o
                           {e?.bids ?? 0} bid{e?.bids === 1 ? '' : 's'}
                         </a>
                       </div>
-                      <div className="c-closes-m small">{closing(e)}</div>
+                      <div className="c-closes-m small">{closing(e, now)}</div>
                     </td>
                   </tr>
                 );

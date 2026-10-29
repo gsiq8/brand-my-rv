@@ -12,7 +12,7 @@ export default function Page() {
         <section className='mb-8'>
           <h4 className='text-xl font-semibold tracking-[-0.01em]'>Who I am</h4>
           <div className='mt-3 muted space-y-3 text-[15px] leading-relaxed [&_a]:text-blue hover:[&_a]:underline [&_strong]:font-medium [&_strong]:text-ink'>
-            <p>Brand My RV is run by Giovana Siquieroli, operating as "GOIA SAS", RUT-220772290013. I am the data controller for everything described here. Contact: <span className="text-orange-500"><a href={`mailto:${CONTACT}`}>{CONTACT}</a></span>.</p>
+            <p>Brand My RV is run by Giovana Siquieroli, operating as &quot;GOIA SAS&quot;, RUT-220772290013. I am the data controller for everything described here. Contact: <span className="text-orange-500"><a href={`mailto:${CONTACT}`}>{CONTACT}</a></span>.</p>
           </div>
         </section>
         <section className='mb-8'>
@@ -65,7 +65,7 @@ export default function Page() {
           <h4 className='text-xl font-semibold tracking-[-0.01em]'>How long I keep it</h4>
           <div className='mt-3 muted space-y-3 text-[15px] leading-relaxed [&_a]:text-blue hover:[&_a]:underline [&_strong]:font-medium [&_strong]:text-ink'>
 
-            <p>Bid records stay while your ad is on the motorhome and for 12 months afterwards, as the record of who bought what. If your logo is refused or you ask me to delete your bid, the bid and the uploaded logo are removed within 30 days. Records of money – payments, refunds, invoices – are kept for as long as Brazil's tax and accounting law requires.</p>
+            <p>Bid records stay while your ad is on the motorhome and for 12 months afterwards, as the record of who bought what. If your logo is refused or you ask me to delete your bid, the bid and the uploaded logo are removed within 30 days. Records of money – payments, refunds, invoices – are kept for as long as Brazil&apos;s tax and accounting law requires.</p>
           </div>
         </section>
         <section className='mb-8'>

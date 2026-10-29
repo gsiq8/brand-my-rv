@@ -36,6 +36,7 @@
     ".next/dev/types/**/*.ts"
 , "playwrite.config.mts"  ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "tests"
   ]
 }

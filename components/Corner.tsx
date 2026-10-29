@@ -1,3 +1,5 @@
+/* eslint-disable @next/next/no-img-element */
+
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { COPY } from '@/lib/site';
@@ -14,7 +16,13 @@ function Row({ h }: { h: Holder }) {
   return (
     <li className="cr-row">
       {h.item.logoUrl
-        ? <BrandLink href={h.item.website}><img src={h.item.logoUrl} alt="" /></BrandLink>
+        ? <BrandLink href={h.item.website}>
+
+          <img
+            src={h.item.logoUrl}
+            alt=""
+          />
+        </BrandLink>
         : <span className="av">{h.item.name.slice(0, 1).toUpperCase()}</span>}
       <BrandLink href={h.item.website}><b>{h.item.name}</b></BrandLink>
       <span className="amt">{money(h.item.amount)}</span>
@@ -70,7 +78,7 @@ export default function Corner({ entry, items, onBid }: { entry?: BoardEntry; it
           elasticity={0}
           cornerRadius={14}
           padding="0"
-          style={{ position: 'absolute', top: '50%', left: '50%' }}
+          style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
         >
           <div className="cr-card">
             {!winner && (

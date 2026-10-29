@@ -55,9 +55,9 @@ export default function Background() {
   const doneRef = useRef<SVGPathElement>(null);
   const rvRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
-  const [tracing, setTracing] = useState(false);
-
-  useEffect(() => setTracing(location.search.includes("trace")), []);
+  const [tracing] = useState(() => 
+    typeof window !== 'undefined' ? location.search.includes("trace") : false
+  );
 
   // O mapa ocupa o container pai (.journey) inteiro: acompanha o tamanho das seções.
   useEffect(() => {

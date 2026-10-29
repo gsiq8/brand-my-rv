@@ -5,6 +5,8 @@ import { CONFIG } from '@/lib/config';
 import { money } from '@/lib/format';
 import { normalizeUrl } from '@/lib/url';
 import type { BoardEntry } from '@/lib/types';
+import NextImage from 'next/image';
+
 
 /** Converts any image to a PNG of max 800px. */
 function shrinkToPng(file: File): Promise<string> {
@@ -131,7 +133,18 @@ export default function BidWizard({ board, selected, onSelect, onDraft }: Props)
             const r = recommendedSize(spot);
             return <div className="hint">Recommended: {r.w}×{r.h} px ({r.ratio}:1){r.cm ? ` · prints at ≈ ${r.cm}` : ''}.</div>;
           })()}
-          {logo && <div className="thumb"><img src={logo} alt="Your logo" /><span>Logo attached{timed ? ' – preview is on the motorhome' : ''}</span></div>}
+          {logo && 
+          <div className="thumb">
+            <NextImage
+              width={100}
+              height={100} 
+              src={logo} 
+              alt="Your logo" 
+              unoptimized
+            />
+            <span>Logo attached{timed ? ' – preview is on the motorhome' : ''}</span>
+          </div>
+          }
           <label>Your bid ({CONFIG.currency.toUpperCase()} / {period})</label>
           <input type="number" min={min} step={CONFIG.bidStep} placeholder={`Min ${min}`} value={amount} onChange={(e) => setAmount(e.target.value)} />
           <div className="hint">

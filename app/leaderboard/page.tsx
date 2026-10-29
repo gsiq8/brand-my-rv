@@ -1,5 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import Link from 'next/link';
 import { SPOTS } from '@/lib/spots';
 import { COPY } from '@/lib/site';
 import { CONFIG } from '@/lib/config';
@@ -22,6 +24,14 @@ const TABS: [Tab, string, string][] = [
   ['newest', 'Newest first', 'Every paid bid, latest first.'],
 ];
 
+// ?spot=... filter, read from the URL without setState-in-effect (server snapshot is null, so hydration matches).
+const subscribeUrl = (cb: () => void) => {
+  window.addEventListener('popstate', cb);
+  return () => window.removeEventListener('popstate', cb);
+};
+const getSpotFilter = () => new URLSearchParams(window.location.search).get('spot');
+const getServerSpotFilter = () => null;
+
 // Bids that were placed and approved (a spot-holding status or a past one).
 const LIVE_LIKE = ['paid', 'outbid', 'settled', 'defaulted'];
 
@@ -30,14 +40,10 @@ export default function Leaderboard() {
   const [tab, setTab] = useState<Tab>('biggest');
   const [selected, setSelected] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
-  const [spotFilter, setSpotFilter] = useState<string | null>(null);
+  const spotFilter = useSyncExternalStore(subscribeUrl, getSpotFilter, getServerSpotFilter);
 
   useEffect(() => {
     fetch('/api/board', { cache: 'no-store' }).then((r) => r.json()).then(setD).catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    setSpotFilter(new URLSearchParams(window.location.search).get('spot'));
   }, []);
 
   const board = useMemo<Record<string, BoardEntry>>(
@@ -61,7 +67,6 @@ export default function Leaderboard() {
       const l = leaders.get(h.spotId);
       return !!l && l.amount === h.amount && l.name === h.name;
     };
-    const spotName = (id: string) => SPOTS.find((s) => s.id === id)?.name ?? id;
     const day = (iso: string) => new Date(iso).toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
     const bidRow = (h: HistoryItem): Row => ({
       key: h.id, name: h.name, logoUrl: h.logoUrl, website: h.website,
@@ -110,7 +115,14 @@ export default function Leaderboard() {
       <Medal rank={rank} size={rank === 1 ? 40 : 34} className="absolute right-4 top-4" />
       <div className="flex h-12 items-center">
         {r.logoUrl
-          ? <BrandLink href={r.website}><img src={r.logoUrl} alt={r.name} className="max-h-12 max-w-[140px] object-contain" /></BrandLink>
+          ? <BrandLink href={r.website}>
+            
+              <img
+              src={r.logoUrl} 
+              alt={r.name} 
+              className="max-h-12 max-w-[140px] object-contain" 
+              />
+            </BrandLink>
           : <span className="av">{r.name.slice(0, 1).toUpperCase()}</span>}
       </div>
       <div className="mt-4 text-[17px] font-medium"><BrandLink href={r.website}>{r.name}</BrandLink></div>
@@ -125,12 +137,12 @@ export default function Leaderboard() {
     <div className="lb-bg">
       {hasCorner && <div className="strip-spacer" aria-hidden="true" />}
       <main className="wrap card-sec">
-        <a href="/">← {COPY.name}</a>
+        <Link href="/">← {COPY.name}</Link>
         <div className="muted small" style={{ marginTop: 28 }}>Every paid bid, ever</div>
         <h1 style={{ marginTop: 8 }}>Leaderboard</h1>
         {spotLabel && (
           <p className="muted small" style={{ marginTop: 4 }}>
-            Filtered by {spotLabel} · <a href="/leaderboard">show all</a>
+            Filtered by {spotLabel} · <Link href="/leaderboard">show all</Link>
           </p>
         )}
         <p className="lead">{bids} paid bid{bids === 1 ? '' : 's'} from {brands} brand{brands === 1 ? '' : 's'}. Even if you get outbid, you stay visible here.</p>
@@ -168,7 +180,7 @@ export default function Leaderboard() {
 
         {podium.length > 0 && (
           <p className="muted small" style={{ textAlign: 'center', margin: '24px 0 0' }}>
-            Want to be on this board? <a href="/#spots" style={{ color: '#2563eb' }}>Take a spot →</a>
+            Want to be on this board? <Link href="/#spots" style={{ color: '#2563eb' }}>Take a spot →</Link>
           </p>
         )}
 
@@ -180,7 +192,14 @@ export default function Leaderboard() {
                 <span className="text-center text-[14px] text-[var(--mu)]">{ranked ? i + 4 : ''}</span>
                 <div className="flex h-9 w-full items-center justify-center">
                   {r.logoUrl
-                    ? <BrandLink href={r.website}><img src={r.logoUrl} alt={r.name} className="max-h-9 max-w-full object-contain" /></BrandLink>
+                    ? <BrandLink href={r.website}>
+                      
+                        <img                       
+                        src={r.logoUrl} 
+                        alt={r.name} 
+                        className="max-h-9 max-w-full object-contain"                         
+                        />
+                      </BrandLink>
                     : <span className="av">{r.name.slice(0, 1).toUpperCase()}</span>}
                 </div>
                 <div className="min-w-0">

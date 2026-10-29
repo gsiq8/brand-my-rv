@@ -1,4 +1,4 @@
-import { COPY, FAQ, SPECS, STEPS } from '@/lib/site';
+import { COPY, SPECS, STEPS } from '@/lib/site';
 
 export function HowItWorks() {
   return (

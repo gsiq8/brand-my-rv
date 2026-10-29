@@ -1,7 +1,6 @@
 /**
- * ALL THE TEXT OF THE PAGE lives here – edit freely. Anything in [square brackets] is a placeholder to replace.
+ * ALL THE TEXT OF THE PAGE lives here
  */
-import { TOTAL_START } from "./spots";
 
 export const COPY = {
   name: 'Brand My RV',
