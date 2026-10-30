@@ -39,7 +39,7 @@ export const SPOTS: SpotDef[] = [
   { id: 'F1', name: 'Chassis brand', side: 'z+', a: 0, b: -0.15, w: 0.14, h: 0.1, price: 52000, view: 'front', truckOnly: true },
   { id: 'F2', name: 'Builders brand', side: 'z+', a: 0, b: 0.21, w: 0.24, h: 0.05, price: 40000, view: 'front', builderOnly: true },
 
-  { kind: 'web', id: 'corner', name: 'The strip – top of this website', price: 0.01, period: 'one-time', noDeposit: true, noRefund: true },
+  { kind: 'web', id: 'corner', name: 'The strip – top of this website', price: 1, period: 'one-time', noDeposit: true, noRefund: true },
 ];
 export const RV_SPOTS = SPOTS.filter(isRv);
 
