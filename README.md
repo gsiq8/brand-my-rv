@@ -1,59 +1,124 @@
-# Motorhome ads – Next.js + Supabase + Stripe
+![Brand My RV](public/banner.png)
 
-3D motorhome (turnable, 6 ad spots) where brands bid for a spot: pick spot + logo + amount → details → pay (Stripe Checkout)
-or reserve with a deposit. When a payment is confirmed the logo goes live and the bid board updates.
+# Brand My RV
 
-> This code was written without being run or type-checked. Expect to fix small things on the first `npm run dev` / `npm run build`.
+A 3D motorhome that anyone can bid on. Brands pick an ad spot on the vehicle, upload a logo, place a bid, and their logo rides along on a 12-month expedition from Patagonia to San Francisco.
 
-boraaa 
-## 1. Setup
-1. `npm install`
-2. Copy `.env.example` to `.env.local` and fill it in.
-3. Supabase: open the SQL editor and run `supabase/001_init.sql` (tables + the two storage buckets), then `supabase/002_visits.sql` (visitor counter).
-4. Stripe: Dashboard > Settings > Payment methods – enable what you want (cards, Pix, PayPal…). Checkout shows only enabled methods.
-5. Webhook – send these events to `/api/stripe/webhook`:
-   `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`,
-   `checkout.session.expired`, `invoice.paid`.
-   Locally: `stripe listen --forward-to localhost:3000/api/stripe/webhook` (it prints the `whsec_…` secret for `.env.local`).
-6. `npm run dev` → http://localhost:3000   ·   admin: http://localhost:3000/admin (uses `ADMIN_SECRET`)
+The site is a single Next.js page with a 3D model of the motorhome, a live auction board, a bid wizard that takes payment through Stripe, and an admin panel for approving logos and handling balances.
 
-## 2. Page structure (same order as the Brand My Mac page)
-Header (logo, nav: The auction · Leaderboard · Replay · The corner, **Get a spot**) → "Previously here" strip + current corner holder with **Claim** →
-Hero: headline, sub, raised (+goal), view switch, **3D motorhome**, **The auction / Final look** switch, "Tap any spot…", pitch + buttons → **counter line (views on social · visitors · spots sold)** →
-intro headline → "N of M spots taken" → **The auction, live.** (price tiers) → Top brands → All spots (filter tabs, bid count) → Day by day →
-How it works → What the money buys (specs) → Questions & answers → The corner (holders + how long each held it) → About you → Footer.
-Bidding opens in a side drawer so the motorhome stays visible while a logo is previewed. Also `/leaderboard`, `/replay`, `/privacy`, `/terms`, `/admin`.
+![Demo](public/demo.gif)
 
-## 3. Where things are
-| What | File |
-|---|---|
-| **All page text** (headline, steps, specs, FAQ, your bio) – look for `[brackets]` | `lib/site.ts` |
-| **Ad spots** (position, size, starting price, the website "corner") | `lib/spots.ts` |
-| Currency, bid step, deposit rule, goal, motorhome length, sky/panorama | `lib/config.ts` |
-| Page sections | `components/Hero.tsx`, `Auction.tsx`, `History.tsx`, `Corner.tsx`, `StaticSections.tsx`, `Header.tsx` |
-| 3D scene | `components/Motorhome3D.tsx`, `lib/sky.ts` |
-| Bid form (3 steps) | `components/BidWizard.tsx` |
-| Create bid + start Stripe Checkout | `app/api/bids/route.ts` |
-| Payment confirmation (logo goes live) | `app/api/stripe/webhook/route.ts` |
-| Public board / history data | `app/api/board/route.ts` |
-| Admin (mark paid, send balance invoice) | `app/admin/page.tsx`, `app/api/admin/…` |
-| Styles | `app/globals.css` |
+## What it does
 
-## 4. How a bid flows
-1. Browser → `POST /api/bids`: the **server** re-checks the minimum (top paid bid + step), validates the logo (PNG only), stores the
-   bidder (private table) and the logo (private bucket), creates a Stripe Checkout Session (full amount, or the deposit).
-2. Stripe → webhook: full payment → `markPaid` copies the logo to the public bucket and sets the bid to `paid`.
-   Deposit → status `pending_offer` (shown as "pending offer" on the board, logo NOT public).
-3. Deposit bids: in `/admin` either **Send balance invoice** (Stripe emails an invoice; `invoice.paid` publishes the logo)
-   or **Mark paid** after collecting the money yourself.
-4. The board shows the highest **paid** bid per spot. Pending offers never raise the minimum.
+- **3D motorhome (Three.js)** with a painted sky that follows the visitor's local clock and the sun's real position over Patagonia.
+- **Ad spots** on the sides, rear, roof and front. Each spot has its own size, starting price and view angle, set in `lib/spots.ts`.
+- **Auction board** with the top bid per spot, a leaderboard, a replay of every paid bid, and a day-by-day history.
+- **The strip**: a rolling bar at the top of the page, plus a "corner" card that anyone can claim for a one-time payment.
+- **Bid wizard** in a side drawer: pick a spot and upload a logo, enter your bid, fill in your details, then pay.
+- **Card hold model**: bids are placed as a Stripe hold. Nothing is charged until the spot closes and the bid is the winning one.
+- **Logo review**: every logo is approved by hand before it goes live on the board and on the motorhome.
+- **Outbid and refund handling**: outbid bids have their hold released automatically.
+- **Admin panel** for approving logos, refusing bids, sending balance invoices and marking payments as collected.
+- **Notifications** by email (Klaviyo) and Telegram, and an optional ntfy hook.
 
-## 5. Decide / do before going live
-- **Outbid policy**: a lower paid bid is not refunded automatically – decide and handle refunds/credits.
-- **Campaign terms**: the bid is "per month"; define duration, start date, cancellation and content rules in a contract.
-- **Logo moderation**: logos go live automatically on payment. For a public vehicle you may want a manual approval step.
-- **Currency**: Pix only works with `brl`; `lib/config.ts` has one currency for the whole site.
-- **Abuse**: add rate limiting to `/api/bids` (e.g. Upstash, Vercel Firewall) and CAPTCHA if needed.
-- **Admin**: `ADMIN_SECRET` is minimal protection. For production use Supabase Auth with an allow-list.
-- **Personal data** (ID, address, phone): stored only in `bidders` (no public access). Add a privacy notice and a retention rule (LGPD/GDPR).
-- **Taxes/invoicing**: check what you must issue (e.g. nota fiscal in Brazil).
+## Stack
+
+- Next.js 16 (App Router, Turbopack), React 19, TypeScript
+- Tailwind CSS v4
+- Three.js with three-mesh-bvh for fast raycasting when placing ad spots on the model
+- liquid-glass-react for the glass effects
+- Supabase (Postgres, private and public storage buckets)
+- Stripe Checkout with manual capture
+- Klaviyo, Telegram and ntfy for notifications
+- sharp to convert logos to WebP on publish
+- Vercel for hosting
+
+## The 3D model
+
+The motorhome was generated with Hunyuan3D-2 from reference images, then cleaned up and retopologized in Blender before export as `public/models/motorhome.glb`. The ad spot positions are defined in model units, so if the model is rescaled, the spots in `lib/spots.ts` need to be checked too.
+
+## Getting started
+
+```bash
+npm install
+cp .env.example .env.local   # fill in the values below
+npm run dev
+```
+
+### Supabase
+
+Run the SQL files in `supabase/` in this order:
+
+1. `001_init.sql` (tables, RLS, storage buckets)
+2. `002_visits.sql` (visitor counter)
+3. Any later migration files in `supabase/`, in order
+
+### Stripe
+
+1. Enable the payment methods you want in **Settings → Payment methods**.
+2. Create a configuration that shows only cards, and put its ID (starts with `pmc_`) in `STRIPE_CARD_ONLY_CONFIG`.
+3. Add a webhook endpoint at `/api/stripe/webhook` with these events:
+   - `checkout.session.completed`
+   - `checkout.session.async_payment_succeeded`
+   - `checkout.session.async_payment_failed`
+   - `checkout.session.expired`
+   - `payment_intent.canceled`
+   - `charge.captured`
+   - `invoice.paid`
+
+Test and live mode each have their own API keys, webhook secrets and payment method configurations. Use the matching ones for each environment.
+
+### Environment variables
+
+| Variable | What it is |
+| --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | Public URL of the site, used for Stripe redirects |
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-only Supabase key. Never expose it |
+| `STRIPE_SECRET_KEY` | Stripe secret key (`sk_...`). Use a restricted key with write access to Checkout, PaymentIntents, Refunds, Customers and Invoices |
+| `STRIPE_WEBHOOK_KEY` | Signing secret of the webhook endpoint (`whsec_...`) |
+| `STRIPE_CARD_ONLY_CONFIG` | ID of the payment method configuration (`pmc_...`) |
+| `ADMIN_SECRET` | Long random string protecting `/admin` and `/api/admin/*` |
+| `KLAVIYO_PRIVATE_KEY` | Klaviyo private key (optional) |
+| `KLAVIYO_LIST_ID` | Klaviyo list for bidders (optional) |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_CHAT_ID`, `TELEGRAM_WEBHOOK_SECRET` | Telegram bot for updates (optional) |
+| `DEPOSIT_HOOK_URL`, `PAYMENT_HOOK_URL` | ntfy topic URLs (optional) |
+
+## Configuration
+
+- `lib/config.ts`: currency, bid step, deposit rule, fundraising goal, motorhome length, sun latitude, auction end date.
+- `lib/site.ts`: all page text (headline, steps, specs, FAQ, host bio).
+- `lib/spots.ts`: ad spot positions, sizes and prices, and the brand lists for truck-only and builder-only spots.
+- `lib/pricing.ts`: minimum bid and deposit calculation.
+
+## Project structure
+
+```
+app/                  Pages and API routes (/, /leaderboard, /replay, /admin, /api/...)
+components/           UI, 3D scene (Motorhome3D), bid wizard, strip, FAQ
+lib/                  Config, spots, pricing, sky, shared types
+lib/server/           Server-only logic: bids, auction close, refunds, notifications
+supabase/             SQL migrations
+public/models/        motorhome.glb (Hunyuan3D-2 + Blender)
+scripts/              One-off maintenance scripts (for example logo conversion)
+tests/                Playwright and Vitest tests
+```
+
+## Before going live
+
+- [ ] Use live Stripe keys and a live webhook endpoint in production.
+- [ ] Confirm `NEXT_PUBLIC_SITE_URL` points to the final domain.
+- [ ] Change `ADMIN_SECRET`.
+- [ ] Clear test data from Supabase (bids, bidders, spot auctions, the visit counter) and from the Stripe test dashboard if you want a clean start.
+- [ ] Test the full flow once with a real low-value bid: bid, logo approval, outbid, refund.
+- [ ] Add a privacy notice and a retention rule for personal data (LGPD/GDPR). The `/privacy` and `/terms` pages are drafts and should be reviewed.
+
+## Known issues
+
+- Some `<img>` elements render logos at fixed sizes without matching CSS dimensions, which makes Next.js print a warning in the browser console. The layout is correct; the warning does not affect the site.
+- The `liquid-glass-react` library adds a dark background layer on some browsers. The component's behaviour depends on the browser's `backdrop-filter` and SVG filter support.
+- Mobile Lighthouse performance is still limited by the size of the three.js bundle, which is loaded on the first page view. Which can be a bummer for older operating systems.
+
+## License
+
+Private project. All rights reserved unless a license is added here.
